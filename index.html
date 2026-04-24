@@ -804,12 +804,17 @@ document.getElementById("url-input").addEventListener("input", update);
 // ═══════════════════════════════════════════════════════════════════════════════
 // PUBLISH
 // ═══════════════════════════════════════════════════════════════════════════════
+async function sha1Hex(str) {
+  var buf = await crypto.subtle.digest("SHA-1", new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(function(b){ return b.toString(16).padStart(2,"0"); }).join("");
+}
+
 async function publish() {
   if (!currentParsed || !netlifyToken || !netlifySiteId) return;
 
-  var slug    = getSlug();
-  var html    = buildRedirectHtml(currentParsed, slug);
-  var pub     = document.getElementById("publish-btn");
+  var slug     = getSlug();
+  var newHtml  = buildRedirectHtml(currentParsed, slug);
+  var pub      = document.getElementById("publish-btn");
   var resultEl = document.getElementById("result");
 
   pub.classList.remove("active"); pub.classList.add("waiting");
@@ -817,27 +822,42 @@ async function publish() {
   resultEl.classList.remove("show");
 
   try {
-    var encoded = new TextEncoder().encode(html);
-    var hashBuf = await crypto.subtle.digest("SHA-1", encoded);
-    var sha1    = Array.from(new Uint8Array(hashBuf)).map(function(b){ return b.toString(16).padStart(2,"0"); }).join("");
+    // 1. Get existing files from latest deploy so we don't wipe them
+    var existingFiles = {};
+    try {
+      var dr0 = await fetch("https://api.netlify.com/api/v1/sites/" + netlifySiteId + "/deploys?per_page=1", {
+        headers: { Authorization: "Bearer " + netlifyToken }
+      });
+      if (dr0.ok) {
+        var d0 = await dr0.json();
+        if (d0.length && d0[0].files) existingFiles = d0[0].files;
+      }
+    } catch(e) {}
 
+    // 2. Merge new file into existing manifest
+    var newSha  = await sha1Hex(newHtml);
+    var allFiles = Object.assign({}, existingFiles, { ["/" + slug + ".html"]: newSha });
+
+    // 3. Create deploy
     var dr = await fetch("https://api.netlify.com/api/v1/sites/" + netlifySiteId + "/deploys", {
       method: "POST",
       headers: { Authorization: "Bearer " + netlifyToken, "Content-Type": "application/json" },
-      body: JSON.stringify({ files: { ["/" + slug + ".html"]: sha1 } }),
+      body: JSON.stringify({ files: allFiles }),
     });
 
     if (!dr.ok) { var e = await dr.json().catch(function(){ return {}; }); throw new Error(e.message || dr.status); }
-
     var deploy = await dr.json();
 
-    var ur = await fetch("https://api.netlify.com/api/v1/deploys/" + deploy.id + "/files/" + slug + ".html", {
-      method: "PUT",
-      headers: { Authorization: "Bearer " + netlifyToken, "Content-Type": "application/octet-stream" },
-      body: html,
-    });
-
-    if (!ur.ok) throw new Error("Upload failed " + ur.status);
+    // 4. Upload only files Netlify requires (ones it doesn't already have)
+    var required = deploy.required || [];
+    if (required.includes(newSha)) {
+      var ur = await fetch("https://api.netlify.com/api/v1/deploys/" + deploy.id + "/files/" + slug + ".html", {
+        method: "PUT",
+        headers: { Authorization: "Bearer " + netlifyToken, "Content-Type": "application/octet-stream" },
+        body: newHtml,
+      });
+      if (!ur.ok) throw new Error("Upload failed " + ur.status);
+    }
 
     lastResultUrl = (deploy.ssl_url || deploy.url || netlifySiteUrl) + "/" + slug + ".html";
     document.getElementById("result-url").textContent = lastResultUrl;
