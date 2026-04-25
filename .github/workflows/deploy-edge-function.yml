@@ -2,7 +2,9 @@ name: Deploy Supabase Edge Function
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - 'claude/edge-function-redirects-t3KXx'
     paths:
       - 'supabase/functions/**'
   workflow_dispatch:
