@@ -484,61 +484,61 @@ input.youtube { border-color: var(--youtube); }
 // ═══════════════════════════════════════════
 // SUPABASE CONFIG
 // ═══════════════════════════════════════════
-var sbUrl = localStorage.getItem(‘sburl’) || ‘https://vzkfundtlfpyljfemzsn.supabase.co’;
-var sbKey = localStorage.getItem(‘sbkey’) || ‘eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6a2Z1bmR0bGZweWxqZmVtenNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNDUxMDUsImV4cCI6MjA5MjYyMTEwNX0.I64KdFUmUMSpet_rzXmECZPnh21hBN_bYuL_h6MmXFw’;
+var sbUrl = localStorage.getItem('sburl') || 'https://vzkfundtlfpyljfemzsn.supabase.co';
+var sbKey = localStorage.getItem('sbkey') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6a2Z1bmR0bGZweWxqZmVtenNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNDUxMDUsImV4cCI6MjA5MjYyMTEwNX0.I64KdFUmUMSpet_rzXmECZPnh21hBN_bYuL_h6MmXFw';
 
 function saveSupabase() {
-var u = document.getElementById(‘sb-url’).value.trim();
-var k = document.getElementById(‘sb-key’).value.trim();
-if (!u || !k) { alert(‘Please enter both URL and key.’); return; }
+var u = document.getElementById('sb-url').value.trim();
+var k = document.getElementById('sb-key').value.trim();
+if (!u || !k) { alert('Please enter both URL and key.'); return; }
 sbUrl = u; sbKey = k;
-localStorage.setItem(‘sburl’, u);
-localStorage.setItem(‘sbkey’, k);
+localStorage.setItem('sburl', u);
+localStorage.setItem('sbkey', k);
 updateConnectedUI();
 loadLinksList();
-alert(‘Connected! You can now publish links.’);
+alert('Connected! You can now publish links.');
 }
 
 function disconnectSupabase() {
-sbUrl = ‘’; sbKey = ‘’;
-localStorage.removeItem(‘sburl’);
-localStorage.removeItem(‘sbkey’);
-document.getElementById(‘sb-url’).value = ‘’;
-document.getElementById(‘sb-key’).value = ‘’;
+sbUrl = ''; sbKey = '';
+localStorage.removeItem('sburl');
+localStorage.removeItem('sbkey');
+document.getElementById('sb-url').value = '';
+document.getElementById('sb-key').value = '';
 updateConnectedUI();
 }
 
 function updateConnectedUI() {
-var row     = document.getElementById(‘connected-row’);
-var banner  = document.getElementById(‘setup-banner’);
-var pubBtn  = document.getElementById(‘publish-btn’);
+var row     = document.getElementById('connected-row');
+var banner  = document.getElementById('setup-banner');
+var pubBtn  = document.getElementById('publish-btn');
 
 if (sbUrl && sbKey) {
-row.classList.add(‘show’);
-document.getElementById(‘connected-text’).textContent = sbUrl;
-banner.classList.remove(‘show’);
+row.classList.add('show');
+document.getElementById('connected-text').textContent = sbUrl;
+banner.classList.remove('show');
 } else {
-row.classList.remove(‘show’);
-banner.classList.add(‘show’);
+row.classList.remove('show');
+banner.classList.add('show');
 }
 updateBtns();
 }
 
 // Pre-fill settings if already saved
-if (sbUrl) document.getElementById(‘sb-url’).value = sbUrl;
-if (sbKey) document.getElementById(‘sb-key’).value = sbKey;
+if (sbUrl) document.getElementById('sb-url').value = sbUrl;
+if (sbKey) document.getElementById('sb-key').value = sbKey;
 updateConnectedUI();
 
 // ═══════════════════════════════════════════
 // NAV
 // ═══════════════════════════════════════════
 function showPage(id, tab) {
-document.querySelectorAll(’.page’).forEach(function(p){ p.classList.remove(‘active’); });
-document.querySelectorAll(’.nav-tab’).forEach(function(t){ t.classList.remove(‘active’); });
-document.getElementById(‘page-’ + id).classList.add(‘active’);
-tab.classList.add(‘active’);
-if (id === ‘dashboard’) loadDashboard();
-if (id === ‘generator’) loadLinksList();
+document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+document.querySelectorAll('.nav-tab').forEach(function(t){ t.classList.remove('active'); });
+document.getElementById('page-' + id).classList.add('active');
+tab.classList.add('active');
+if (id === 'dashboard') loadDashboard();
+if (id === 'generator') loadLinksList();
 }
 
 // ═══════════════════════════════════════════
@@ -546,35 +546,35 @@ if (id === ‘generator’) loadLinksList();
 // ═══════════════════════════════════════════
 function detectPlatform(url) {
 url = url.trim();
-var spre = url.match(/spotify.com/(prerelease)/([A-Za-z0-9]+)/);
-if (spre) return { platform:‘spotify’, type:‘prerelease’, id:spre[2], webOnly:true, raw:url };
+var spre = url.match(/spotify\.com\/(prerelease)\/([A-Za-z0-9]+)/);
+if (spre) return { platform:'spotify', type:'prerelease', id:spre[2], webOnly:true, raw:url };
 
-var sp = url.match(/spotify.com/(track|album|artist|playlist|show|episode|user)/([A-Za-z0-9]+)/);
-if (sp) return { platform:‘spotify’, type:sp[1], id:sp[2], webOnly:false, raw:url };
+var sp = url.match(/spotify\.com\/(track|album|artist|playlist|show|episode|user)\/([A-Za-z0-9]+)/);
+if (sp) return { platform:'spotify', type:sp[1], id:sp[2], webOnly:false, raw:url };
 var sp2 = url.match(/spotify:(track|album|artist|playlist|show|episode|user):([A-Za-z0-9]+)/);
-if (sp2) return { platform:‘spotify’, type:sp2[1], id:sp2[2], webOnly:false, raw:url };
+if (sp2) return { platform:'spotify', type:sp2[1], id:sp2[2], webOnly:false, raw:url };
 
-if (/music.apple.com/.test(url)) return { platform:‘apple’, type:‘universal’, id:’’, webOnly:false, raw:url };
-if (/music.amazon.[a-z.]+/.test(url)) return { platform:‘amazon’, type:‘universal’, id:’’, webOnly:false, raw:url };
+if (/music.apple.com/.test(url)) return { platform:'apple', type:'universal', id:'', webOnly:false, raw:url };
+if (/music.amazon.[a-z.]+/.test(url)) return { platform:'amazon', type:'universal', id:'', webOnly:false, raw:url };
 
-var ytv = url.match(/(?:youtube.com/watch?v=|youtu.be/)([A-Za-z0-9_-]+)/);
-if (ytv) return { platform:‘youtube’, type:‘video’, id:ytv[1], webOnly:false, raw:url };
-if (/(?:music.)?youtube.com/.test(url)) return { platform:‘youtube’, type:‘universal’, id:’’, webOnly:false, raw:url };
+var ytv = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]+)/);
+if (ytv) return { platform:'youtube', type:'video', id:ytv[1], webOnly:false, raw:url };
+if (/(?:music.)?youtube.com/.test(url)) return { platform:'youtube', type:'universal', id:'', webOnly:false, raw:url };
 
 return null;
 }
 
-var COLORS = { spotify:’#1ed760’, apple:’#fc3c44’, amazon:’#00a8e1’, youtube:’#ff0000’ };
-var LABELS = { spotify:‘Spotify’, apple:‘Apple Music’, amazon:‘Amazon Music’, youtube:‘YouTube’ };
+var COLORS = { spotify:'#1ed760', apple:'#fc3c44', amazon:'#00a8e1', youtube:'#ff0000' };
+var LABELS = { spotify:'Spotify', apple:'Apple Music', amazon:'Amazon Music', youtube:'YouTube' };
 
 function buildWebUrl(p) {
-if (p.platform === ‘spotify’) return ‘https://open.spotify.com/’ + p.type + ‘/’ + p.id;
+if (p.platform === 'spotify') return 'https://open.spotify.com/' + p.type + '/' + p.id;
 return p.raw.split(/[?&]/)[0];
 }
 
 function buildAppUri(p) {
-if (p.platform === ‘spotify’ && !p.webOnly) return ‘spotify:’ + p.type + ‘:’ + p.id;
-if (p.platform === ‘youtube’ && p.type === ‘video’) return ‘vnd.youtube:’ + p.id;
+if (p.platform === 'spotify' && !p.webOnly) return 'spotify:' + p.type + ':' + p.id;
+if (p.platform === 'youtube' && p.type === 'video') return 'vnd.youtube:' + p.id;
 return null;
 }
 
@@ -582,86 +582,86 @@ return null;
 // GENERATOR UI
 // ═══════════════════════════════════════════
 var currentParsed = null;
-var lastResultUrl = ‘’;
+var lastResultUrl = '';
 
 function update() {
-var raw     = document.getElementById(‘url-input’).value.trim();
-var inputEl = document.getElementById(‘url-input’);
-var clearEl = document.getElementById(‘clear-btn’);
-var badge   = document.getElementById(‘badge’);
-var preview = document.getElementById(‘preview’);
+var raw     = document.getElementById('url-input').value.trim();
+var inputEl = document.getElementById('url-input');
+var clearEl = document.getElementById('clear-btn');
+var badge   = document.getElementById('badge');
+var preview = document.getElementById('preview');
 
-clearEl.style.display = raw ? ‘block’ : ‘none’;
-inputEl.className = ‘’;
+clearEl.style.display = raw ? 'block' : 'none';
+inputEl.className = '';
 
 if (!raw) {
-badge.style.display = ‘none’;
-preview.className = ‘preview’;
-preview.innerHTML = ‘Paste a link above…’;
+badge.style.display = 'none';
+preview.className = 'preview';
+preview.innerHTML = 'Paste a link above…';
 currentParsed = null; updateBtns(); return;
 }
 
 var p = detectPlatform(raw);
 if (!p) {
-badge.style.display = ‘block’; badge.className = ‘badge-row error’;
-badge.textContent = ‘⚠ Not recognized — paste a Spotify, Apple Music, Amazon Music, or YouTube link’;
-preview.className = ‘preview’; preview.innerHTML = ‘Unrecognized link.’;
+badge.style.display = 'block'; badge.className = 'badge-row error';
+badge.textContent = '⚠ Not recognized — paste a Spotify, Apple Music, Amazon Music, or YouTube link';
+preview.className = 'preview'; preview.innerHTML = 'Unrecognized link.';
 currentParsed = null; updateBtns(); return;
 }
 
 currentParsed = p;
 inputEl.classList.add(p.platform);
-badge.style.display = ‘block’;
-badge.className = ’badge-row ’ + (p.webOnly ? ‘prerelease’ : p.platform);
+badge.style.display = 'block';
+badge.className = 'badge-row ' + (p.webOnly ? 'prerelease' : p.platform);
 badge.textContent = p.webOnly
-? ‘⚡ Prerelease — redirects to web player’
-: ‘✓ ’ + LABELS[p.platform] + ’ detected’ + (p.type && p.type !== ‘universal’ ? ’ · ’ + p.type.toUpperCase() : ‘’);
+? '⚡ Prerelease — redirects to web player'
+: '✓ ' + LABELS[p.platform] + ' detected' + (p.type && p.type !== 'universal' ? ' · ' + p.type.toUpperCase() : '');
 
 var webUrl = buildWebUrl(p);
 var appUri = buildAppUri(p);
-preview.className = ‘preview has-value’;
+preview.className = 'preview has-value';
 
 if (p.webOnly) {
-preview.innerHTML = ’<span class="web-only">⚡ Web redirect only</span><br><span class="fallback">↳ ’ + webUrl + ‘</span>’;
+preview.innerHTML = '<span class="web-only">⚡ Web redirect only</span><br><span class="fallback">↳ ' + webUrl + '</span>';
 } else if (appUri) {
-preview.innerHTML = ‘<span class="app-uri">’ + appUri + ’</span><br><span class="fallback">↳ fallback: ’ + webUrl + ‘</span>’;
+preview.innerHTML = '<span class="app-uri">' + appUri + '</span><br><span class="fallback">↳ fallback: ' + webUrl + '</span>';
 } else {
-preview.innerHTML = ’<span class="fallback">Universal link → ’ + webUrl + ‘</span>’;
+preview.innerHTML = '<span class="fallback">Universal link → ' + webUrl + '</span>';
 }
 
-document.getElementById(‘dl-btn’).style.setProperty(’–pc’, COLORS[p.platform] || ‘#1ed760’);
+document.getElementById('dl-btn').style.setProperty('–pc', COLORS[p.platform] || '#1ed760');
 updateBtns();
 }
 
 function updateBtns() {
 var hasLink = !!currentParsed;
 var hasSb   = !!(sbUrl && sbKey);
-var pub     = document.getElementById(‘publish-btn’);
-var dl      = document.getElementById(‘dl-btn’);
+var pub     = document.getElementById('publish-btn');
+var dl      = document.getElementById('dl-btn');
 
-dl.classList.toggle(‘active’, hasLink);
-pub.classList.remove(‘active’, ‘waiting’);
+dl.classList.toggle('active', hasLink);
+pub.classList.remove('active', 'waiting');
 
 if (hasLink && hasSb) {
-pub.classList.add(‘active’);
-pub.textContent = ‘Publish Link’;
-pub.style.cssText = ‘’;
+pub.classList.add('active');
+pub.textContent = 'Publish Link';
+pub.style.cssText = '';
 } else if (hasLink && !hasSb) {
-pub.textContent = ‘Connect Supabase to publish’;
-pub.style.background = ‘#111’; pub.style.color = ‘#252525’; pub.style.cursor = ‘not-allowed’;
+pub.textContent = 'Connect Supabase to publish';
+pub.style.background = '#111'; pub.style.color = '#252525'; pub.style.cursor = 'not-allowed';
 } else {
-pub.textContent = ‘Publish Link’;
-pub.style.cssText = ‘’;
+pub.textContent = 'Publish Link';
+pub.style.cssText = '';
 }
 }
 
 function clearInput() {
-document.getElementById(‘url-input’).value = ‘’;
-document.getElementById(‘result’).classList.remove(‘show’);
+document.getElementById('url-input').value = '';
+document.getElementById('result').classList.remove('show');
 update();
 }
 
-document.getElementById(‘url-input’).addEventListener(‘input’, update);
+document.getElementById('url-input').addEventListener('input', update);
 
 // ═══════════════════════════════════════════
 // PUBLISH — writes directly to Supabase
@@ -673,21 +673,21 @@ var slug    = getSlug();
 var p       = currentParsed;
 var webUrl  = buildWebUrl(p);
 var appUri  = buildAppUri(p);
-var pub     = document.getElementById(‘publish-btn’);
-var resultEl = document.getElementById(‘result’);
+var pub     = document.getElementById('publish-btn');
+var resultEl = document.getElementById('result');
 
-pub.classList.remove(‘active’); pub.classList.add(‘waiting’);
-pub.innerHTML = ‘<span class="spinner"></span>Publishing…’;
-resultEl.classList.remove(‘show’);
+pub.classList.remove('active'); pub.classList.add('waiting');
+pub.innerHTML = '<span class="spinner"></span>Publishing…';
+resultEl.classList.remove('show');
 
 try {
-var res = await fetch(sbUrl + ‘/rest/v1/links’, {
-method: ‘POST’,
+var res = await fetch(sbUrl + '/rest/v1/links', {
+method: 'POST',
 headers: {
-‘Content-Type’: ‘application/json’,
+'Content-Type': 'application/json',
 apikey: sbKey,
-Authorization: ’Bearer ’ + sbKey,
-Prefer: ‘return=minimal,resolution=ignore-duplicates’
+Authorization: 'Bearer ' + sbKey,
+Prefer: 'return=minimal,resolution=ignore-duplicates'
 },
 body: JSON.stringify({
 slug:         slug,
@@ -712,31 +712,31 @@ resultEl.classList.add('show');
 loadLinksList();
 
 } catch(e) {
-alert(’Publish failed: ’ + e.message);
+alert('Publish failed: ' + e.message);
 } finally {
-pub.classList.remove(‘waiting’); pub.classList.add(‘active’);
-pub.textContent = ‘Publish Link’;
+pub.classList.remove('waiting'); pub.classList.add('active');
+pub.textContent = 'Publish Link';
 }
 }
 
 function copyResult() {
 navigator.clipboard.writeText(lastResultUrl).catch(function() {
-var ta = document.createElement(‘textarea’);
+var ta = document.createElement('textarea');
 ta.value = lastResultUrl; document.body.appendChild(ta); ta.select();
-document.execCommand(‘copy’); document.body.removeChild(ta);
+document.execCommand('copy'); document.body.removeChild(ta);
 });
-var btn = document.querySelector(’.rbtn.copy’);
-btn.textContent = ‘✓ Copied’;
-setTimeout(function(){ btn.textContent = ‘Copy URL’; }, 2000);
+var btn = document.querySelector('.rbtn.copy');
+btn.textContent = '✓ Copied';
+setTimeout(function(){ btn.textContent = 'Copy URL'; }, 2000);
 }
 
-function openResult() { if (lastResultUrl) window.open(lastResultUrl, ‘_blank’); }
+function openResult() { if (lastResultUrl) window.open(lastResultUrl, '_blank'); }
 
 function getSlug() {
-var raw = document.getElementById(‘slug-input’).value.trim();
-if (raw) return raw.replace(/[^a-zA-Z0-9._-]/g, ‘-’);
-if (!currentParsed) return ‘music-link’;
-return currentParsed.platform + (currentParsed.id ? ‘-’ + currentParsed.id.slice(0,8) : ‘-link’);
+var raw = document.getElementById('slug-input').value.trim();
+if (raw) return raw.replace(/[^a-zA-Z0-9._-]/g, '-');
+if (!currentParsed) return 'music-link';
+return currentParsed.platform + (currentParsed.id ? '-' + currentParsed.id.slice(0,8) : '-link');
 }
 
 // ═══════════════════════════════════════════
@@ -747,19 +747,19 @@ if (!currentParsed) return;
 var p     = currentParsed;
 var web   = buildWebUrl(p);
 var app   = buildAppUri(p);
-var color = COLORS[p.platform] || ‘#fff’;
-var label = LABELS[p.platform] || ‘Music’;
-var css   = ‘html,body{margin:0;padding:0;background:#000;width:100%;height:100%;display:flex;align-items:center;justify-content:center;}.dots{display:flex;gap:6px;}.dot{width:6px;height:6px;background:’+color+’;border-radius:50%;animation:p 1.2s ease-in-out infinite;}.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}@keyframes p{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}’;
-var dots  = ‘<div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>’;
+var color = COLORS[p.platform] || '#fff';
+var label = LABELS[p.platform] || 'Music';
+var css   = 'html,body{margin:0;padding:0;background:#000;width:100%;height:100%;display:flex;align-items:center;justify-content:center;}.dots{display:flex;gap:6px;}.dot{width:6px;height:6px;background:'+color+';border-radius:50%;animation:p 1.2s ease-in-out infinite;}.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}@keyframes p{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}';
+var dots  = '<div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
 var html;
 if (p.webOnly || !app) {
-html = ‘<!DOCTYPE html><html><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Opening ‘+label+’…</title><style>’+css+’</style></head><body>’+dots+’<script>window.location.href=”’+web+’”;</script></body></html>’;
+html = '<!DOCTYPE html><html><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Opening '+label+'…</title><style>'+css+'</style></head><body>'+dots+'<script>window.location.href="'+web+'";<\/script></body></html>';
 } else {
-html = ‘<!DOCTYPE html><html><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Opening ‘+label+’…</title><style>’+css+’</style></head><body>’+dots+’<script>var app=”’+app+’”,web=”’+web+’”,mob=/iphone|ipad|ipod|android/i.test(navigator.userAgent);function go(){if(!mob){window.location.href=web;return;}var t=setTimeout(function(){window.location.href=web;},1800);document.addEventListener(“visibilitychange”,function(){if(document.hidden)clearTimeout(t);});window.addEventListener(“pagehide”,function(){clearTimeout(t);});window.location.href=app;}setTimeout(go,100);</script></body></html>’;
+html = '<!DOCTYPE html><html><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Opening '+label+'…</title><style>'+css+'</style></head><body>'+dots+'<script>var app="'+app+'",web="'+web+'",mob=/iphone|ipad|ipod|android/i.test(navigator.userAgent);function go(){if(!mob){window.location.href=web;return;}var t=setTimeout(function(){window.location.href=web;},1800);document.addEventListener("visibilitychange",function(){if(document.hidden)clearTimeout(t);});window.addEventListener("pagehide",function(){clearTimeout(t);});window.location.href=app;}setTimeout(go,100);<\/script></body></html>';
 }
-var a = document.createElement(‘a’);
-a.href = URL.createObjectURL(new Blob([html], { type: ‘text/html’ }));
-a.download = getSlug() + ‘.html’; a.click(); URL.revokeObjectURL(a.href);
+var a = document.createElement('a');
+a.href = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+a.download = getSlug() + '.html'; a.click(); URL.revokeObjectURL(a.href);
 }
 
 // ═══════════════════════════════════════════
@@ -768,12 +768,12 @@ a.download = getSlug() + ‘.html’; a.click(); URL.revokeObjectURL(a.href);
 async function loadLinksList() {
 if (!sbUrl || !sbKey) return;
 try {
-var res  = await fetch(sbUrl + ‘/rest/v1/links?select=*&order=created_at.desc’, {
-headers: { apikey: sbKey, Authorization: ’Bearer ’ + sbKey }
+var res  = await fetch(sbUrl + '/rest/v1/links?select=*&order=created_at.desc', {
+headers: { apikey: sbKey, Authorization: 'Bearer ' + sbKey }
 });
 var rows = await res.json();
-var el   = document.getElementById(‘links-list’);
-if (!rows.length) { el.innerHTML = ‘’; return; }
+var el   = document.getElementById('links-list');
+if (!rows.length) { el.innerHTML = ''; return; }
 
 var base = window.location.origin + window.location.pathname;
 el.innerHTML = rows.map(function(r) {
@@ -785,29 +785,29 @@ el.innerHTML = rows.map(function(r) {
 }
 
 async function deleteLink(slug, btn) {
-if (!confirm(‘Delete /’ + slug + ‘? This cannot be undone.’)) return;
-btn.textContent = ‘…’;
+if (!confirm('Delete /' + slug + '? This cannot be undone.')) return;
+btn.textContent = '…';
 try {
-await fetch(sbUrl + ‘/rest/v1/links?slug=eq.’ + encodeURIComponent(slug), {
-method: ‘DELETE’,
-headers: { apikey: sbKey, Authorization: ’Bearer ’ + sbKey }
+await fetch(sbUrl + '/rest/v1/links?slug=eq.' + encodeURIComponent(slug), {
+method: 'DELETE',
+headers: { apikey: sbKey, Authorization: 'Bearer ' + sbKey }
 });
 loadLinksList();
 } catch(e) {
-alert(’Delete failed: ’ + e.message);
-btn.textContent = ‘Delete’;
+alert('Delete failed: ' + e.message);
+btn.textContent = 'Delete';
 }
 }
 
 function copyText(textOrEl, btn) {
-var text = (typeof textOrEl === ‘string’) ? textOrEl : textOrEl.dataset.url;
+var text = (typeof textOrEl === 'string') ? textOrEl : textOrEl.dataset.url;
 navigator.clipboard.writeText(text).catch(function() {
-var ta = document.createElement(‘textarea’);
+var ta = document.createElement('textarea');
 ta.value = text; document.body.appendChild(ta); ta.select();
-document.execCommand(‘copy’); document.body.removeChild(ta);
+document.execCommand('copy'); document.body.removeChild(ta);
 });
-btn.textContent = ‘✓’;
-setTimeout(function(){ btn.textContent = ‘Copy’; }, 1500);
+btn.textContent = '✓';
+setTimeout(function(){ btn.textContent = 'Copy'; }, 1500);
 }
 
 // ═══════════════════════════════════════════
@@ -817,41 +817,41 @@ function pct(n, t) { return t ? Math.round(n / t * 100) : 0; }
 
 function groupBy(rows, key) {
 var c = {};
-rows.forEach(function(r){ var k = r[key]||‘unknown’; c[k]=(c[k]||0)+1; });
+rows.forEach(function(r){ var k = r[key]||'unknown'; c[k]=(c[k]||0)+1; });
 return Object.entries(c).sort(function(a,b){ return b[1]-a[1]; }).map(function(e){ return {key:e[0],count:e[1]}; });
 }
 
 function renderBars(id, rows, total, colorFn) {
 var el = document.getElementById(id);
-if (!rows.length) { el.innerHTML = ‘<div class="dash-empty">No data yet</div>’; return; }
+if (!rows.length) { el.innerHTML = '<div class="dash-empty">No data yet</div>'; return; }
 el.innerHTML = rows.slice(0,8).map(function(r) {
 var p = pct(r.count, total);
-var color = colorFn ? colorFn(r.key) : ‘var(–green)’;
-return ‘<div class="bar-row"><span class="bar-key" title="'+(r.key||'—')+'">’+(r.key||’—’)+’</span><div class="bar-track"><div class="bar-fill" style="width:'+p+'%;background:'+color+';"></div></div><span class="bar-val">’+r.count+’</span></div>’;
-}).join(’’);
+var color = colorFn ? colorFn(r.key) : 'var(–green)';
+return '<div class="bar-row"><span class="bar-key" title="'+(r.key||'—')+'">'+(r.key||'—')+'</span><div class="bar-track"><div class="bar-fill" style="width:'+p+'%;background:'+color+';"></div></div><span class="bar-val">'+r.count+'</span></div>';
+}).join('');
 }
 
 function renderDonut(id, rows, total, colorFn) {
 var el = document.getElementById(id);
-if (!rows.length) { el.innerHTML = ‘<div class="dash-empty" style="padding:12px 0">—</div>’; return; }
+if (!rows.length) { el.innerHTML = '<div class="dash-empty" style="padding:12px 0">—</div>'; return; }
 el.innerHTML = rows.slice(0,5).map(function(r) {
 var p = pct(r.count, total);
-var color = colorFn ? colorFn(r.key) : ‘var(–green)’;
-return ‘<div class="donut-item"><span class="donut-label">’+(r.key||‘unknown’)+’</span><div class="donut-bar"><div class="donut-fill" style="width:'+p+'%;background:'+color+';"></div></div><span class="donut-pct">’+p+’%</span></div>’;
-}).join(’’);
+var color = colorFn ? colorFn(r.key) : 'var(–green)';
+return '<div class="donut-item"><span class="donut-label">'+(r.key||'unknown')+'</span><div class="donut-bar"><div class="donut-fill" style="width:'+p+'%;background:'+color+';"></div></div><span class="donut-pct">'+p+'%</span></div>';
+}).join('');
 }
 
 async function loadDashboard() {
 if (!sbUrl || !sbKey) {
-document.getElementById(‘bar-links’).innerHTML = ‘<div class="dash-empty">Connect Supabase in Settings to see analytics</div>’;
+document.getElementById('bar-links').innerHTML = '<div class="dash-empty">Connect Supabase in Settings to see analytics</div>';
 return;
 }
-var btn = document.getElementById(‘refresh-btn’);
-btn.textContent = ‘↻ Loading…’;
+var btn = document.getElementById('refresh-btn');
+btn.textContent = '↻ Loading…';
 
 try {
-var res  = await fetch(sbUrl + ‘/rest/v1/clicks?select=*&order=clicked_at.desc&limit=2000’, {
-headers: { apikey: sbKey, Authorization: ’Bearer ’ + sbKey }
+var res  = await fetch(sbUrl + '/rest/v1/clicks?select=*&order=clicked_at.desc&limit=2000', {
+headers: { apikey: sbKey, Authorization: 'Bearer ' + sbKey }
 });
 var rows = await res.json();
 
@@ -897,7 +897,7 @@ if (!recent.length) {
 } catch(e) {
 console.error(e);
 } finally {
-btn.textContent = ‘↻ Refresh’;
+btn.textContent = '↻ Refresh';
 }
 }
 
