@@ -564,8 +564,9 @@
 // ═══════════════════════════════════════════
 // SUPABASE CONFIG
 // ═══════════════════════════════════════════
-var sbUrl = localStorage.getItem('sburl') || '';
-var sbKey = localStorage.getItem('sbkey') || '';
+var sbUrl = localStorage.getItem('sburl') || 'https://vzkfundtlfpyljfemzsn.supabase.co';
+var sbKey = localStorage.getItem('sbkey') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6a2Z1bmR0bGZweWxqZmVtenNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNDUxMDUsImV4cCI6MjA5MjYyMTEwNX0.I64KdFUmUMSpet_rzXmECZPnh21hBN_bYuL_h6MmXFw';
+
 
 function saveSupabase() {
   var u = document.getElementById('sb-url').value.trim();
