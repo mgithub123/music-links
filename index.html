@@ -326,16 +326,19 @@ function getSbConfig() {
 
 function sbFetch(path, opts = {}) {
   const { url, key } = getSbConfig()
-  return fetch(`${url}/rest/v1/${path}`, {
-    ...opts,
-    headers: {
-      'apikey': key,
-      'Authorization': `Bearer ${key}`,
-      'Content-Type': 'application/json',
-      'Prefer': opts.prefer || 'return=representation',
-      ...(opts.headers || {}),
-    },
-  })
+  const token = localStorage.getItem('sb_access_token') || key
+  const headers = {
+    'apikey': key,
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json',
+    ...(opts.headers || {}),
+  }
+  // Only set Prefer when explicitly provided or defaulting for non-DELETE
+  if (opts.method !== 'DELETE') {
+    headers['Prefer'] = opts.prefer ?? 'return=representation'
+  }
+  const { prefer: _p, headers: _h, ...fetchOpts } = opts
+  return fetch(`${url}/rest/v1/${path}`, { ...fetchOpts, headers })
 }
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
@@ -525,13 +528,18 @@ async function loadGeneratorLinks() {
 
 async function deleteLink(id, slug) {
   if (!confirm(`Delete "${slug}"? This cannot be undone.`)) return
-  const res = await sbFetch(`links?id=eq.${id}`, { method: 'DELETE', prefer: '' })
-  if (res.ok) {
-    document.getElementById(`gen-row-${id}`)?.remove()
-    const tbody = document.getElementById('gen-links-body')
-    if (!tbody.children.length) tbody.innerHTML = '<tr><td colspan="5" class="empty">No links yet.</td></tr>'
-  } else {
-    alert('Delete failed.')
+  try {
+    const res = await sbFetch(`links?id=eq.${id}`, { method: 'DELETE' })
+    if (res.ok) {
+      document.getElementById(`gen-row-${id}`)?.remove()
+      const tbody = document.getElementById('gen-links-body')
+      if (!tbody.children.length) tbody.innerHTML = '<tr><td colspan="5" class="empty">No links yet.</td></tr>'
+    } else {
+      const err = await res.json().catch(() => ({}))
+      alert('Delete failed: ' + (err.message || err.hint || res.status))
+    }
+  } catch (e) {
+    alert('Delete failed: ' + e.message)
   }
 }
 
