@@ -1,106 +1,90 @@
-// deno-lint-ignore-file no-explicit-any
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const PLATFORM_COLORS: Record<string, string> = {
-  spotify: '#1ed760',
-  apple: '#fc3c44',
-  amazon: '#00a8e1',
-  youtube: '#ff0000',
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+
+function detectDevice(ua: string): 'mobile' | 'desktop' {
+  return /iPhone|iPad|iPod|Android|Mobile/i.test(ua) ? 'mobile' : 'desktop'
+}
+
+function getDeepLink(url: string, device: 'mobile' | 'desktop'): string {
+  if (device === 'desktop') return url
+
+  // Spotify: https://open.spotify.com/track/ID → spotify://track/ID
+  const spotifyMatch = url.match(/open\.spotify\.com\/(track|album|playlist|artist)\/([A-Za-z0-9]+)/)
+  if (spotifyMatch) return `spotify://${spotifyMatch[1]}/${spotifyMatch[2]}`
+
+  // YouTube: https://www.youtube.com/watch?v=ID → youtube://v/ID
+  const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]+)/)
+  if (ytMatch) return `youtube://v/${ytMatch[1]}`
+
+  // Apple Music: passes through (iOS opens in app natively)
+  // Amazon Music: passes through
+  return url
 }
 
 Deno.serve(async (req: Request) => {
   const url = new URL(req.url)
-  const slug = url.searchParams.get('go')
+  // Accept ?slug=, ?go=, or a trailing path segment (e.g. /redirect/my-slug)
+  const pathSegments = url.pathname.split('/').filter(Boolean)
+  const pathSlug = pathSegments.length > 3 ? pathSegments[pathSegments.length - 1] : null
+  const slug = url.searchParams.get('slug') ||
+               url.searchParams.get('go') ||
+               pathSlug
 
   if (!slug) {
-    return new Response('Missing ?go= parameter', { status: 400 })
+    return new Response('Missing slug', { status: 400 })
   }
 
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-  )
+  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
-  const { data: link } = await supabase
+  const { data: link, error } = await supabase
     .from('links')
     .select('*')
     .eq('slug', slug)
-    .maybeSingle()
+    .single()
 
-  if (!link) {
-    return new Response(
-      '<!DOCTYPE html><html><head><meta charset="UTF-8"/></head><body style="margin:0;background:#000;color:#333;font-family:monospace;display:flex;align-items:center;justify-content:center;height:100vh;">Link not found.</body></html>',
-      { status: 404, headers: { 'Content-Type': 'text/html' } },
-    )
+  if (error || !link) {
+    return new Response('Link not found', { status: 404 })
   }
 
-  // Device detection from User-Agent
-  const ua = req.headers.get('user-agent') ?? ''
-  const isTablet = /ipad|tablet/i.test(ua)
-  const isMobile = /iphone|ipad|ipod|android/i.test(ua)
-  const device = isTablet ? 'tablet' : isMobile ? 'mobile' : 'desktop'
-
-  // Country detection — Supabase edge nodes forward these headers
+  const ua = req.headers.get('user-agent') || ''
+  const device = detectDevice(ua)
   const country =
-    req.headers.get('x-country') ??
-    req.headers.get('cf-ipcountry') ??
-    null
+    req.headers.get('cf-ipcountry') ||
+    req.headers.get('x-vercel-ip-country') ||
+    req.headers.get('x-country') ||
+    'unknown'
+  const referrer = req.headers.get('referer') || ''
 
-  const referrer = req.headers.get('referer') ?? null
-  const isApp = isMobile && !link.web_only && !!link.app_uri
+  // Pick source URL: prefer per-device fields, fall back to generic url field
+  const sourceUrl: string =
+    (device === 'mobile' ? link.mobile_url : link.desktop_url) || link.url || ''
 
-  // Log click (await to guarantee write before response exits)
-  await supabase.from('clicks').insert({
+  if (!sourceUrl) {
+    return new Response('No destination URL configured', { status: 404 })
+  }
+
+  const destination = getDeepLink(sourceUrl, device)
+  const openedApp = destination !== sourceUrl
+
+  // Fire-and-forget click log (don't await — keeps redirect fast)
+  supabase.from('clicks').insert({
+    link_id: link.id,
     slug,
-    platform: link.platform,
-    link_type: isApp ? 'app' : 'web',
-    device,
+    device_type: device,
     country,
     referrer,
-    clicked_at: new Date().toISOString(),
-  })
+    destination,
+    opened_app: openedApp,
+    created_at: new Date().toISOString(),
+  }).then(() => {})
 
-  // Desktop or web-only: straight 302
-  if (!isMobile || link.web_only || !link.app_uri) {
-    return new Response(null, {
-      status: 302,
-      headers: { Location: link.web_url },
-    })
-  }
-
-  // Mobile with app URI: serve HTML that tries app deep link then falls back
-  const color = PLATFORM_COLORS[link.platform] ?? '#fff'
-  const appUri = link.app_uri as string
-  const webUrl = link.web_url as string
-
-  const html = `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Opening…</title>
-<style>
-html,body{margin:0;padding:0;background:#000;width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
-.dots{display:flex;gap:6px;}
-.dot{width:6px;height:6px;background:${color};border-radius:50%;animation:p 1.2s ease-in-out infinite;}
-.dot:nth-child(2){animation-delay:.2s}
-.dot:nth-child(3){animation-delay:.4s}
-@keyframes p{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
-</style>
-</head>
-<body>
-<div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-<script>
-var t=setTimeout(function(){window.location.href=${JSON.stringify(webUrl)};},1800);
-document.addEventListener('visibilitychange',function(){if(document.hidden)clearTimeout(t);});
-window.addEventListener('pagehide',function(){clearTimeout(t);});
-window.location.href=${JSON.stringify(appUri)};
-</script>
-</body>
-</html>`
-
-  return new Response(html, {
-    status: 200,
-    headers: { 'Content-Type': 'text/html; charset=utf-8' },
+  return new Response(null, {
+    status: 302,
+    headers: {
+      Location: destination,
+      'Cache-Control': 'no-store',
+    },
   })
 })
