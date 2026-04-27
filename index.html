@@ -123,9 +123,42 @@
   .notice { background: var(--surface2); border-left: 3px solid var(--accent); padding: 12px 16px; border-radius: 0 var(--radius) var(--radius) 0; font-size: 0.88rem; color: var(--muted); margin-bottom: 18px; }
   .notice strong { color: var(--text); }
   .empty { text-align: center; color: var(--muted); padding: 40px 0; font-size: 0.9rem; }
+
+  /* ── Login screen ── */
+  #login-screen {
+    display: none; position: fixed; inset: 0;
+    background: var(--bg); z-index: 200;
+    align-items: center; justify-content: center;
+  }
+  #login-screen.show { display: flex; }
+  .login-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 36px 32px; width: 100%; max-width: 360px;
+  }
+  .login-card h2 { font-size: 1.2rem; margin-bottom: 6px; }
+  .login-card p  { color: var(--muted); font-size: 0.85rem; margin-bottom: 24px; }
+  .login-error   { color: #f87171; font-size: 0.85rem; margin-top: 12px; min-height: 20px; }
 </style>
 </head>
 <body>
+
+<!-- Login screen -->
+<div id="login-screen" class="show">
+  <div class="login-card">
+    <h2>🎵 Music Links</h2>
+    <p>Sign in to manage your links</p>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn btn-primary" id="login-btn" style="width:100%">Sign In</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
 
 <!-- Redirect overlay (shown when ?go=slug) -->
 <div id="redirect-screen">
@@ -134,10 +167,14 @@
 </div>
 
 <!-- Main app -->
-<div class="container" id="app">
+<div class="container" id="app" style="display:none">
   <header>
     <h1>🎵 Music Links</h1>
     <p>Smart deep links for every music platform</p>
+    <div style="margin-top:10px">
+      <span style="font-size:.8rem;color:var(--muted)" id="auth-email"></span>
+      <button class="btn btn-secondary btn-sm" id="logout-btn" style="margin-left:10px">Sign Out</button>
+    </div>
   </header>
 
   <nav class="tabs">
@@ -300,6 +337,83 @@ function sbFetch(path, opts = {}) {
     },
   })
 }
+
+// ── Auth ─────────────────────────────────────────────────────────────────────
+function authHeaders() {
+  const token = localStorage.getItem('sb_access_token')
+  const { key } = getSbConfig()
+  return {
+    'apikey': key,
+    'Authorization': `Bearer ${token || key}`,
+    'Content-Type': 'application/json',
+  }
+}
+
+async function checkSession() {
+  const token = localStorage.getItem('sb_access_token')
+  if (!token) return null
+  const { url, key } = getSbConfig()
+  const res = await fetch(`${url}/auth/v1/user`, {
+    headers: { 'apikey': key, 'Authorization': `Bearer ${token}` }
+  })
+  if (!res.ok) { localStorage.removeItem('sb_access_token'); return null }
+  return await res.json()
+}
+
+async function signIn(email, password) {
+  const { url, key } = getSbConfig()
+  const res = await fetch(`${url}/auth/v1/token?grant_type=password`, {
+    method: 'POST',
+    headers: { 'apikey': key, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.error_description || data.msg || 'Sign-in failed')
+  localStorage.setItem('sb_access_token', data.access_token)
+  return data
+}
+
+async function signOut() {
+  const { url, key } = getSbConfig()
+  await fetch(`${url}/auth/v1/logout`, { method: 'POST', headers: authHeaders() })
+  localStorage.removeItem('sb_access_token')
+  showLogin()
+}
+
+function showApp(email) {
+  document.getElementById('login-screen').classList.remove('show')
+  document.getElementById('app').style.display = ''
+  if (email) document.getElementById('auth-email').textContent = email
+}
+
+function showLogin() {
+  document.getElementById('login-screen').classList.add('show')
+  document.getElementById('app').style.display = 'none'
+}
+
+document.getElementById('login-btn').addEventListener('click', async () => {
+  const email    = document.getElementById('login-email').value.trim()
+  const password = document.getElementById('login-password').value
+  const errEl    = document.getElementById('login-error')
+  const btn      = document.getElementById('login-btn')
+  if (!email || !password) { errEl.textContent = 'Enter your email and password.'; return }
+  btn.disabled = true; btn.textContent = 'Signing in…'; errEl.textContent = ''
+  try {
+    const data = await signIn(email, password)
+    showApp(data.user?.email)
+    loadGeneratorLinks()
+  } catch (e) {
+    errEl.textContent = e.message
+  } finally {
+    btn.disabled = false; btn.textContent = 'Sign In'
+  }
+})
+
+document.getElementById('login-password').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('login-btn').click()
+})
+
+document.getElementById('logout-btn').addEventListener('click', signOut)
 
 // ── Redirect handler ─────────────────────────────────────────────────────────
 ;(function handleRedirect() {
@@ -528,8 +642,15 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 })
 
 // ── Init ──────────────────────────────────────────────────────────────────────
-loadSettingsFields()
-loadGeneratorLinks()
+loadSettingsFields();
+(async () => {
+  // Skip auth check for redirect links — fans don't need to log in
+  const isRedirect = new URLSearchParams(location.search).has('go')
+  if (isRedirect) return
+  const user = await checkSession()
+  if (user) { showApp(user.email); loadGeneratorLinks() }
+  else showLogin()
+})()
 </script>
 </body>
 </html>
