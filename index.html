@@ -527,8 +527,15 @@ async function loadGeneratorLinks() {
 }
 
 async function deleteLink(id, slug) {
-  if (!confirm(`Delete "${slug}"? This cannot be undone.`)) return
+  if (!confirm(`Delete "${slug}"? Click data will be kept but the link will stop working.`)) return
   try {
+    // Nullify link_id on clicks so the FK doesn't block the delete (preserves click history)
+    const nullify = await sbFetch(`clicks?link_id=eq.${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ link_id: null }),
+    })
+    if (!nullify.ok) throw new Error('Could not unlink click records')
+
     const res = await sbFetch(`links?id=eq.${id}`, { method: 'DELETE' })
     if (res.ok) {
       document.getElementById(`gen-row-${id}`)?.remove()
