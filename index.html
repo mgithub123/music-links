@@ -1,909 +1,484 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Music Links</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Music Links</title>
+<style>
+  :root {
+    --bg: #0f0f13;
+    --surface: #1a1a24;
+    --surface2: #22222e;
+    --border: #2e2e3e;
+    --accent: #1db954;
+    --accent2: #fc3c44;
+    --text: #e8e8f0;
+    --muted: #888899;
+    --radius: 10px;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
 
-:root {
-  --bg:         #080808;
-  --surface:    #0e0e0e;
-  --surface2:   #131313;
-  --border:     #1c1c1c;
-  --text:       #e0e0e0;
-  --muted:      #444;
-  --dim:        #1e1e1e;
-  --spotify:    #1ed760;
-  --apple:      #fc3c44;
-  --amazon:     #00a8e1;
-  --youtube:    #ff0000;
-  --prerelease: #f0a500;
-  --green:      #00c7b7;
-}
+  /* ── Layout ── */
+  .container { max-width: 800px; margin: 0 auto; padding: 24px 16px 60px; }
+  header { text-align: center; padding: 32px 0 24px; }
+  header h1 { font-size: 1.8rem; font-weight: 700; letter-spacing: -0.5px; }
+  header p { color: var(--muted); margin-top: 4px; font-size: 0.9rem; }
 
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Courier New', Courier, monospace;
-  min-height: 100vh;
-}
+  /* ── Tabs ── */
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 28px; }
+  .tab-btn {
+    background: none; border: none; color: var(--muted);
+    padding: 10px 18px; cursor: pointer; font-size: 0.9rem; font-family: var(--font);
+    border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .15s;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; }
 
-nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px 28px;
-  border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 0;
-  background: rgba(8,8,8,0.96);
-  backdrop-filter: blur(8px);
-  z-index: 10;
-}
+  /* ── Forms ── */
+  .field { margin-bottom: 18px; }
+  .field label { display: block; font-size: 0.82rem; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px; }
+  .field input, .field select {
+    width: 100%; background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); padding: 10px 14px; border-radius: var(--radius);
+    font-size: 0.95rem; font-family: var(--font); outline: none; transition: border-color .15s;
+  }
+  .field input:focus, .field select:focus { border-color: var(--accent); }
+  .field input::placeholder { color: var(--muted); }
 
-.nav-brand { font-size: 12px; font-weight: 900; letter-spacing: 0.1em; color: #fff; text-transform: uppercase; }
-.nav-tabs  { display: flex; gap: 4px; }
+  /* ── Buttons ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 22px; border-radius: var(--radius); border: none;
+    font-size: 0.9rem; font-family: var(--font); cursor: pointer; transition: opacity .15s;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn-primary { background: var(--accent); color: #000; font-weight: 600; }
+  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-sm { padding: 6px 14px; font-size: 0.82rem; }
 
-.nav-tab {
-  font-family: inherit; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
-  padding: 7px 14px; border-radius: 6px; border: none;
-  background: transparent; color: var(--muted); cursor: pointer; transition: all 0.12s;
-}
+  /* ── Cards ── */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 22px; margin-bottom: 16px; }
+  .card-title { font-size: 0.82rem; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
 
-.nav-tab.active { background: var(--surface2); color: var(--text); }
-.nav-tab:hover  { color: #888; }
+  /* ── Stat grid ── */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin-bottom: 24px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
+  .stat-value { font-size: 2rem; font-weight: 700; line-height: 1; }
+  .stat-label { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
 
-.page { display: none; padding: 48px 20px 80px; }
-.page.active { display: flex; flex-direction: column; align-items: center; }
+  /* ── Result box ── */
+  .result-box {
+    background: var(--surface2); border: 1px solid var(--accent); border-radius: var(--radius);
+    padding: 16px 18px; margin-top: 20px; display: none;
+  }
+  .result-box.show { display: block; }
+  .result-url { font-size: 1rem; color: var(--accent); word-break: break-all; margin-bottom: 10px; }
+  .copy-row { display: flex; gap: 8px; }
 
-/* ── Setup banner ── */
-.setup-banner {
-  width: 100%; max-width: 520px;
-  background: rgba(240,165,0,0.06);
-  border: 1px solid rgba(240,165,0,0.25);
-  border-radius: 10px;
-  padding: 14px 18px;
-  margin-bottom: 16px;
-  display: none;
-}
+  /* ── Table ── */
+  .tbl-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  th { text-align: left; color: var(--muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: .4px; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface2); }
 
-.setup-banner.show { display: flex; align-items: center; gap: 12px; }
+  /* ── Badges ── */
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 0.76rem; font-weight: 600; }
+  .badge-mobile { background: #1d3a4a; color: #4db8e8; }
+  .badge-desktop { background: #2a1d40; color: #a78bfa; }
+  .badge-app { background: #1a3328; color: var(--accent); }
+  .badge-web { background: #2e2a1a; color: #f59e0b; }
 
-.setup-banner-text { font-size: 11px; color: #f0a500; flex: 1; }
+  /* ── Redirect overlay ── */
+  #redirect-screen {
+    display: none; position: fixed; inset: 0;
+    background: var(--bg); z-index: 100;
+    flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+  }
+  #redirect-screen.show { display: flex; }
+  .spinner {
+    width: 40px; height: 40px; border: 3px solid var(--border);
+    border-top-color: var(--accent); border-radius: 50%;
+    animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #redirect-screen p { color: var(--muted); font-size: 0.9rem; }
 
-.setup-link {
-  font-family: inherit; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
-  padding: 7px 12px; border-radius: 6px; background: rgba(240,165,0,0.15);
-  border: 1px solid rgba(240,165,0,0.3); color: #f0a500; cursor: pointer; white-space: nowrap;
-}
-
-/* ── Card ── */
-.card {
-  width: 100%; max-width: 520px;
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 12px; padding: 32px; margin-bottom: 16px;
-}
-
-.field { margin-bottom: 22px; }
-
-label {
-  display: block; font-size: 10px; letter-spacing: 0.3em;
-  color: var(--muted); text-transform: uppercase; margin-bottom: 10px;
-}
-
-.platform-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
-
-.pill {
-  font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase;
-  padding: 4px 10px; border-radius: 20px; border: 1px solid var(--dim); color: var(--muted);
-}
-
-.pill.spotify { border-color: var(--spotify); color: var(--spotify); }
-.pill.apple   { border-color: var(--apple);   color: var(--apple); }
-.pill.amazon  { border-color: var(--amazon);  color: var(--amazon); }
-.pill.youtube { border-color: var(--youtube); color: var(--youtube); }
-
-.input-wrap { position: relative; }
-
-input[type="text"], input[type="password"] {
-  width: 100%; background: var(--bg); border: 1px solid var(--dim);
-  border-radius: 8px; padding: 13px 40px 13px 14px; color: var(--text);
-  font-family: inherit; font-size: 12px; letter-spacing: 0.02em;
-  outline: none; transition: border-color 0.2s;
-}
-
-input:focus { border-color: #2a2a2a; }
-input.spotify { border-color: var(--spotify); }
-input.apple   { border-color: var(--apple); }
-input.amazon  { border-color: var(--amazon); }
-input.youtube { border-color: var(--youtube); }
-
-.clear {
-  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-  background: none; border: none; color: var(--muted); cursor: pointer;
-  font-size: 17px; display: none; padding: 0;
-}
-
-.badge-row {
-  display: none; margin-top: 8px; font-size: 10px; letter-spacing: 0.08em;
-  padding: 6px 10px; border-radius: 6px; border: 1px solid;
-}
-
-.badge-row.spotify    { color: var(--spotify); border-color: rgba(30,215,96,0.3);  background: rgba(30,215,96,0.05); }
-.badge-row.apple      { color: var(--apple);   border-color: rgba(252,60,68,0.3);   background: rgba(252,60,68,0.05); }
-.badge-row.amazon     { color: var(--amazon);  border-color: rgba(0,168,225,0.3);   background: rgba(0,168,225,0.05); }
-.badge-row.youtube    { color: var(--youtube); border-color: rgba(255,0,0,0.3);     background: rgba(255,0,0,0.05); }
-.badge-row.prerelease { color: var(--prerelease); border-color: rgba(240,165,0,0.3); background: rgba(240,165,0,0.05); }
-.badge-row.error      { color: #555; border-color: #1e1e1e; }
-
-.preview {
-  background: var(--bg); border: 1px solid var(--dim); border-radius: 8px;
-  padding: 13px 14px; font-size: 11px; color: #2a2a2a; word-break: break-all;
-  line-height: 1.7; min-height: 58px; font-style: italic;
-}
-
-.preview.has-value { font-style: normal; color: #555; }
-.preview .app-uri  { color: #777; }
-.preview .fallback { color: #2a2a2a; font-size: 10px; }
-.preview .web-only { color: var(--prerelease); }
-
-.btn-row { display: flex; gap: 8px; }
-
-.btn {
-  flex: 1; border: none; border-radius: 8px; padding: 14px;
-  cursor: not-allowed; font-family: inherit; font-size: 11px; font-weight: 700;
-  letter-spacing: 0.18em; text-transform: uppercase; transition: all 0.12s;
-  background: #111; color: #252525;
-}
-
-.btn.active { cursor: pointer; }
-.btn.active:hover { filter: brightness(1.08); }
-
-#publish-btn.active  { background: var(--green); color: #000; }
-#publish-btn.waiting { background: #0a3d39; color: var(--green); cursor: wait; }
-
-#dl-btn {
-  flex: 0 0 auto; padding: 14px 18px;
-  background: transparent; border: 1px solid var(--dim);
-  color: var(--muted); font-size: 10px;
-}
-
-#dl-btn.active { color: #000; border-color: transparent; background: var(--pc, #1ed760); }
-
-.result {
-  display: none; margin-top: 14px;
-  background: rgba(0,199,183,0.05); border: 1px solid rgba(0,199,183,0.2);
-  border-radius: 8px; padding: 14px 16px;
-}
-
-.result.show { display: block; }
-.result-label { font-size: 10px; letter-spacing: 0.2em; color: var(--green); text-transform: uppercase; margin-bottom: 8px; }
-.result-url   { font-size: 12px; color: #bbb; word-break: break-all; margin-bottom: 10px; }
-.result-acts  { display: flex; gap: 8px; }
-
-.rbtn { font-family: inherit; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 700; }
-.rbtn.copy { background: var(--green); border: none; color: #000; }
-.rbtn.open { background: transparent; border: 1px solid #2a2a2a; color: #666; }
-
-@keyframes spin { to { transform: rotate(360deg); } }
-.spinner {
-  display: inline-block; width: 10px; height: 10px;
-  border: 2px solid rgba(0,199,183,0.3); border-top-color: var(--green);
-  border-radius: 50%; animation: spin 0.7s linear infinite;
-  margin-right: 6px; vertical-align: middle;
-}
-
-/* ── Links list ── */
-.links-list { width: 100%; max-width: 520px; display: flex; flex-direction: column; gap: 8px; }
-
-.link-item {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 8px; padding: 12px 14px;
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-}
-
-.link-slug { font-size: 12px; color: #777; }
-.link-plat { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 3px; }
-.link-plat.spotify { color: var(--spotify); }
-.link-plat.apple   { color: var(--apple); }
-.link-plat.amazon  { color: var(--amazon); }
-.link-plat.youtube { color: var(--youtube); }
-
-.link-copy {
-  font-family: inherit; font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase;
-  padding: 6px 12px; border-radius: 5px; background: transparent;
-  border: 1px solid #1e1e1e; color: #333; cursor: pointer; white-space: nowrap;
-}
-
-.link-copy:hover { border-color: #333; color: #666; }
-
-.link-delete {
-  font-family: inherit; font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase;
-  padding: 6px 12px; border-radius: 5px; background: transparent;
-  border: 1px solid #1e1e1e; color: #333; cursor: pointer; white-space: nowrap;
-}
-.link-delete:hover { border-color: #ff4444; color: #ff4444; }
-
-/* ── Dashboard ── */
-.dash-wrap { width: 100%; max-width: 960px; }
-
-.dash-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.dash-heading { font-size: 10px; letter-spacing: 0.3em; color: #1e1e1e; text-transform: uppercase; }
-
-.refresh-btn {
-  font-family: inherit; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
-  padding: 7px 14px; border-radius: 6px; background: transparent;
-  border: 1px solid #1a1a1a; color: #252525; cursor: pointer; transition: all 0.12s;
-}
-
-.refresh-btn:hover { border-color: #2a2a2a; color: #444; }
-
-.dash-grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px; margin-bottom: 20px;
-}
-
-.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px 22px; }
-.stat-label { font-size: 10px; letter-spacing: 0.25em; color: var(--muted); text-transform: uppercase; margin-bottom: 10px; }
-.stat-value { font-size: 32px; font-weight: 900; letter-spacing: -0.04em; color: #fff; }
-
-.section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin-bottom: 14px; }
-.section-title { font-size: 10px; letter-spacing: 0.3em; color: var(--muted); text-transform: uppercase; margin-bottom: 18px; }
-
-.bar-list { display: flex; flex-direction: column; gap: 10px; }
-.bar-row  { display: flex; align-items: center; gap: 12px; }
-.bar-key  { font-size: 11px; color: #555; width: 130px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.bar-track { flex: 1; background: #111; border-radius: 3px; height: 5px; overflow: hidden; }
-.bar-fill  { height: 100%; border-radius: 3px; background: var(--green); transition: width 0.5s; }
-.bar-val   { font-size: 11px; color: #333; width: 32px; text-align: right; flex-shrink: 0; }
-
-.split-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
-
-.donut-row { display: flex; flex-direction: column; gap: 8px; }
-.donut-item { display: flex; align-items: center; gap: 10px; }
-.donut-label { font-size: 11px; color: #444; width: 80px; flex-shrink: 0; }
-.donut-bar   { flex: 1; background: #111; border-radius: 3px; height: 4px; overflow: hidden; }
-.donut-fill  { height: 100%; border-radius: 3px; transition: width 0.5s; }
-.donut-pct   { font-size: 11px; color: #333; width: 36px; text-align: right; flex-shrink: 0; }
-
-.clicks-table { width: 100%; border-collapse: collapse; }
-.clicks-table th { font-size: 9px; letter-spacing: 0.2em; color: #252525; text-transform: uppercase; text-align: left; padding: 0 0 12px; border-bottom: 1px solid #111; }
-.clicks-table td { font-size: 11px; color: #3a3a3a; padding: 9px 0; border-bottom: 1px solid #0e0e0e; }
-.clicks-table td:first-child { color: #555; }
-
-.pdot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
-.dash-empty { text-align: center; padding: 32px 0; font-size: 11px; color: #1e1e1e; letter-spacing: 0.1em; }
-
-/* ── Settings ── */
-.settings-card {
-  width: 100%; max-width: 520px;
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 12px; padding: 32px;
-}
-
-.settings-title { font-size: 10px; letter-spacing: 0.3em; color: var(--muted); text-transform: uppercase; margin-bottom: 24px; }
-.settings-field { margin-bottom: 18px; }
-.settings-row   { display: flex; gap: 8px; }
-
-.save-btn {
-  font-family: inherit; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
-  padding: 13px 18px; border-radius: 8px; background: var(--green);
-  border: none; color: #000; cursor: pointer; font-weight: 700; flex-shrink: 0;
-}
-
-.connected-row {
-  display: none; align-items: center; gap: 10px;
-  padding: 12px 14px; background: rgba(0,199,183,0.05);
-  border: 1px solid rgba(0,199,183,0.2); border-radius: 8px; margin-top: 8px;
-}
-
-.connected-row.show { display: flex; }
-.connected-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 5px rgba(0,199,183,0.5); flex-shrink: 0; }
-.connected-text { font-size: 11px; color: #3a3a3a; flex: 1; }
-.disconnect-btn { font-family: inherit; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; padding: 5px 10px; border-radius: 5px; background: transparent; border: 1px solid #1e1e1e; color: #333; cursor: pointer; }
-
-.settings-note { font-size: 10px; color: #252525; margin-top: 10px; line-height: 1.7; }
-.settings-note a { color: var(--green); text-decoration: none; }
-.settings-note code { color: #333; background: #111; padding: 1px 5px; border-radius: 3px; font-size: 10px; font-family: inherit; }
-
-  </style>
+  /* ── Misc ── */
+  .notice { background: var(--surface2); border-left: 3px solid var(--accent); padding: 12px 16px; border-radius: 0 var(--radius) var(--radius) 0; font-size: 0.88rem; color: var(--muted); margin-bottom: 18px; }
+  .notice strong { color: var(--text); }
+  .empty { text-align: center; color: var(--muted); padding: 40px 0; font-size: 0.9rem; }
+</style>
 </head>
 <body>
 
-<nav>
-  <span class="nav-brand">Music Links</span>
-  <div class="nav-tabs">
-    <button class="nav-tab active" onclick="showPage('generator', this)">Generator</button>
-    <button class="nav-tab" onclick="showPage('dashboard', this)">Dashboard</button>
-    <button class="nav-tab" onclick="showPage('settings', this)">Settings</button>
-  </div>
-</nav>
+<!-- Redirect overlay (shown when ?go=slug) -->
+<div id="redirect-screen">
+  <div class="spinner"></div>
+  <p>Opening link…</p>
+</div>
 
-<!-- ══ Generator ══ -->
+<!-- Main app -->
+<div class="container" id="app">
+  <header>
+    <h1>🎵 Music Links</h1>
+    <p>Smart deep links for every music platform</p>
+  </header>
 
-<div class="page active" id="page-generator">
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="generator">Generator</button>
+    <button class="tab-btn" data-tab="dashboard">Dashboard</button>
+    <button class="tab-btn" data-tab="settings">Settings</button>
+  </nav>
 
-  <div class="setup-banner" id="setup-banner">
-    <span class="setup-banner-text">⚡ Connect Supabase to start publishing links</span>
-    <button class="setup-link" onclick="showPage('settings', document.querySelectorAll('.nav-tab')[2])">Set up →</button>
-  </div>
-
-  <div class="card">
-    <div class="field">
-      <label>Paste any music link</label>
-      <div class="platform-pills">
-        <span class="pill spotify">Spotify</span>
-        <span class="pill apple">Apple Music</span>
-        <span class="pill amazon">Amazon Music</span>
-        <span class="pill youtube">YouTube</span>
-      </div>
-      <div class="input-wrap">
-        <input type="text" id="url-input" placeholder="Paste a link from any platform…" autocomplete="off" spellcheck="false" />
-        <button class="clear" id="clear-btn" onclick="clearInput()">×</button>
-      </div>
-      <div class="badge-row" id="badge"></div>
+  <!-- ── Generator Tab ── -->
+  <section class="tab-pane active" id="tab-generator">
+    <div class="notice">
+      Paste a <strong>Spotify, Apple Music, Amazon Music, or YouTube</strong> URL.
+      We'll generate a smart link that opens the right app on every device.
     </div>
 
-<div class="field">
-  <label>Slug <span style="color:#1a1a1a;letter-spacing:0">(your shareable URL path)</span></label>
-  <input type="text" id="slug-input" placeholder="e.g. work-work-work" autocomplete="off" spellcheck="false" />
-</div>
-
-<div class="field" style="margin-bottom:20px;">
-  <label>Preview</label>
-  <div class="preview" id="preview">Paste a link above…</div>
-</div>
-
-<div class="btn-row">
-  <button class="btn" id="publish-btn" onclick="publishLink()">Publish Link</button>
-  <button class="btn" id="dl-btn" onclick="downloadFile()">↓ Save</button>
-</div>
-
-<div class="result" id="result">
-  <div class="result-label">✓ Live</div>
-  <div class="result-url" id="result-url"></div>
-  <div class="result-acts">
-    <button class="rbtn copy" onclick="copyResult()">Copy URL</button>
-    <button class="rbtn open" onclick="openResult()">Open ↗</button>
-  </div>
-</div>
-
-  </div>
-
-  <div class="links-list" id="links-list"></div>
-</div>
-
-<!-- ══ Dashboard ══ -->
-
-<div class="page" id="page-dashboard">
-  <div class="dash-wrap">
-    <div class="dash-top">
-      <span class="dash-heading">Analytics</span>
-      <button class="refresh-btn" id="refresh-btn" onclick="loadDashboard()">↻ Refresh</button>
+    <div class="card">
+      <div class="field">
+        <label>Music URL</label>
+        <input type="url" id="music-url" placeholder="https://open.spotify.com/track/…">
+      </div>
+      <div class="field">
+        <label>Title <span style="color:var(--muted);font-size:.8rem">(optional)</span></label>
+        <input type="text" id="link-title" placeholder="e.g. Work Work Work">
+      </div>
+      <div class="field">
+        <label>Custom slug <span style="color:var(--muted);font-size:.8rem">(optional — auto-generated if blank)</span></label>
+        <input type="text" id="link-slug" placeholder="e.g. work-work-work">
+      </div>
+      <button class="btn btn-primary" id="publish-btn">Publish Link</button>
     </div>
 
-<div class="dash-grid">
-  <div class="stat-card"><div class="stat-label">Total Clicks</div><div class="stat-value" id="s-total">—</div></div>
-  <div class="stat-card"><div class="stat-label">Links</div><div class="stat-value" id="s-links">—</div></div>
-  <div class="stat-card"><div class="stat-label">Mobile</div><div class="stat-value" id="s-mobile">—</div></div>
-  <div class="stat-card"><div class="stat-label">App Opens</div><div class="stat-value" id="s-app">—</div></div>
-</div>
+    <!-- Result -->
+    <div class="result-box" id="result-box">
+      <div class="card-title">Your shareable link</div>
+      <div class="result-url" id="result-url"></div>
+      <div class="copy-row">
+        <button class="btn btn-secondary btn-sm" id="copy-btn">Copy link</button>
+        <button class="btn btn-secondary btn-sm" id="new-btn">Create another</button>
+      </div>
+      <div style="margin-top:14px;font-size:.82rem;color:var(--muted)">
+        Platform detected: <strong id="detected-platform">—</strong> &nbsp;|&nbsp;
+        Slug: <strong id="result-slug">—</strong>
+      </div>
+    </div>
+  </section>
 
-<div class="section">
-  <div class="section-title">Clicks per link</div>
-  <div class="bar-list" id="bar-links"><div class="dash-empty">No data yet</div></div>
-</div>
+  <!-- ── Dashboard Tab ── -->
+  <section class="tab-pane" id="tab-dashboard">
+    <div class="stats">
+      <div class="stat"><div class="stat-value" id="stat-clicks">—</div><div class="stat-label">Total Clicks</div></div>
+      <div class="stat"><div class="stat-value" id="stat-links">—</div><div class="stat-label">Links Created</div></div>
+      <div class="stat"><div class="stat-value" id="stat-mobile">—</div><div class="stat-label">Mobile %</div></div>
+      <div class="stat"><div class="stat-value" id="stat-app">—</div><div class="stat-label">App Opens %</div></div>
+    </div>
 
-<div class="split-grid">
-  <div class="section" style="margin-bottom:0;">
-    <div class="section-title">Platform</div>
-    <div class="donut-row" id="d-platform"><div class="dash-empty" style="padding:12px 0">—</div></div>
-  </div>
-  <div class="section" style="margin-bottom:0;">
-    <div class="section-title">Device</div>
-    <div class="donut-row" id="d-device"><div class="dash-empty" style="padding:12px 0">—</div></div>
-  </div>
-</div>
+    <div class="card">
+      <div class="card-title">Recent Clicks</div>
+      <div class="tbl-wrap">
+        <table id="clicks-table">
+          <thead><tr>
+            <th>Slug</th><th>Device</th><th>Country</th>
+            <th>App?</th><th>Referrer</th><th>Time</th>
+          </tr></thead>
+          <tbody id="clicks-body">
+            <tr><td colspan="6" class="empty">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-<div class="section">
-  <div class="section-title">Top countries</div>
-  <div class="bar-list" id="bar-countries"><div class="dash-empty">No data yet</div></div>
-</div>
+    <div class="card">
+      <div class="card-title">Your Links</div>
+      <div class="tbl-wrap">
+        <table id="links-table">
+          <thead><tr><th>Slug</th><th>Platform</th><th>Title</th><th>Created</th><th></th></tr></thead>
+          <tbody id="links-body">
+            <tr><td colspan="5" class="empty">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
 
-<div class="section">
-  <div class="section-title">Top referrers</div>
-  <div class="bar-list" id="bar-referrers"><div class="dash-empty">No data yet</div></div>
-</div>
+  <!-- ── Settings Tab ── -->
+  <section class="tab-pane" id="tab-settings">
+    <div class="card">
+      <div class="card-title">Supabase Connection</div>
+      <div class="field">
+        <label>Project URL</label>
+        <input type="url" id="sb-url" placeholder="https://xxxx.supabase.co">
+      </div>
+      <div class="field">
+        <label>Anon Key</label>
+        <input type="text" id="sb-key" placeholder="eyJ…">
+      </div>
+      <button class="btn btn-primary" id="save-settings-btn">Save &amp; Test Connection</button>
+      <p id="conn-status" style="margin-top:12px;font-size:.85rem;color:var(--muted)"></p>
+    </div>
 
-<div class="section">
-  <div class="section-title">Recent clicks</div>
-  <div id="recent-clicks"><div class="dash-empty">No data yet</div></div>
-</div>
+    <div class="card">
+      <div class="card-title">Required Database Tables</div>
+      <pre style="background:var(--bg);padding:14px;border-radius:8px;font-size:.78rem;color:var(--muted);overflow-x:auto;line-height:1.6">create table links (
+  id uuid primary key default gen_random_uuid(),
+  slug text unique not null,
+  url text not null,
+  platform text,
+  title text,
+  created_at timestamptz default now()
+);
+create table clicks (
+  id uuid primary key default gen_random_uuid(),
+  link_id uuid references links(id),
+  slug text,
+  device_type text,
+  country text,
+  referrer text,
+  destination text,
+  opened_app boolean default false,
+  created_at timestamptz default now()
+);</pre>
+    </div>
+  </section>
 
-  </div>
-</div>
-
-<!-- ══ Settings ══ -->
-
-<div class="page" id="page-settings">
-  <div class="settings-card">
-    <div class="settings-title">Supabase Connection</div>
-
-<div class="settings-field">
-  <label>Project URL</label>
-  <input type="text" id="sb-url" placeholder="https://xxxx.supabase.co" autocomplete="off" spellcheck="false" />
-</div>
-
-<div class="settings-field">
-  <label>Anon Key</label>
-  <div class="settings-row">
-    <input type="password" id="sb-key" placeholder="Your legacy anon key" autocomplete="off" />
-    <button class="save-btn" onclick="saveSupabase()">Connect</button>
-  </div>
-</div>
-
-<div class="connected-row" id="connected-row">
-  <div class="connected-dot"></div>
-  <span class="connected-text" id="connected-text">Connected</span>
-  <button class="disconnect-btn" onclick="disconnectSupabase()">Disconnect</button>
-</div>
-
-<div class="settings-note">
-  Get these from your Supabase project → <a href="https://supabase.com/dashboard" target="_blank">Settings → API</a>.<br>
-  Use the <code>legacy anon public</code> key.<br><br>
-  Also make sure you've run this SQL in Supabase → SQL Editor:<br><br>
-  <code>create table if not exists links (id bigserial primary key, slug text unique not null, platform text, app_uri text, web_url text, web_only boolean default false, original_url text, created_at timestamptz default now());</code><br><br>
-  <code>create table if not exists clicks (id bigserial primary key, slug text, platform text, link_type text, device text, country text, referrer text, clicked_at timestamptz default now());</code>
-</div>
-
-  </div>
-</div>
-
-<!-- ══ Redirect page (loaded via ?go=slug) ══ -->
+</div><!-- /container -->
 
 <script>
-// ═══════════════════════════════════════════
-// CHECK IF THIS IS A REDIRECT REQUEST
-// URL: yourusername.github.io/music-links/?go=work-work-work
-// ═══════════════════════════════════════════
-(function() {
-  var params = new URLSearchParams(window.location.search);
-  var slug   = params.get('go');
-  if (!slug) return;
+const EDGE_FN_URL = 'https://vzkfundtlfpyljfemzsn.supabase.co/functions/v1/redirect'
+const DEFAULT_SB_URL = 'https://vzkfundtlfpyljfemzsn.supabase.co'
+const DEFAULT_SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6a2Z1bmR0bGZweWxqZmVtenNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNDUxMDUsImV4cCI6MjA5MjYyMTEwNX0.I64KdFUmUMSpet_rzXmECZPnh21hBN_bYuL_h6MmXFw'
 
-  // Show loading screen immediately
-  document.body.innerHTML = '<style>html,body{margin:0;padding:0;background:#000;width:100%;height:100%;display:flex;align-items:center;justify-content:center;}.dots{display:flex;gap:6px;}.dot{width:6px;height:6px;background:#1ed760;border-radius:50%;animation:p 1.2s ease-in-out infinite;}.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}@keyframes p{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}</style><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
-
-  // Delegate to edge function — handles device detection, country, analytics, and redirect server-side
-  window.location.replace('https://vzkfundtlfpyljfemzsn.supabase.co/functions/v1/redirect?go=' + encodeURIComponent(slug));
-})();
-
-// ═══════════════════════════════════════════
-// SUPABASE CONFIG
-// ═══════════════════════════════════════════
-var sbUrl = localStorage.getItem('sburl') || 'https://vzkfundtlfpyljfemzsn.supabase.co';
-var sbKey = localStorage.getItem('sbkey') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6a2Z1bmR0bGZweWxqZmVtenNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNDUxMDUsImV4cCI6MjA5MjYyMTEwNX0.I64KdFUmUMSpet_rzXmECZPnh21hBN_bYuL_h6MmXFw';
-
-function saveSupabase() {
-var u = document.getElementById('sb-url').value.trim();
-var k = document.getElementById('sb-key').value.trim();
-if (!u || !k) { alert('Please enter both URL and key.'); return; }
-sbUrl = u; sbKey = k;
-localStorage.setItem('sburl', u);
-localStorage.setItem('sbkey', k);
-updateConnectedUI();
-loadLinksList();
-alert('Connected! You can now publish links.');
+function getSbConfig() {
+  return {
+    url: localStorage.getItem('sb_url') || DEFAULT_SB_URL,
+    key: localStorage.getItem('sb_key') || DEFAULT_SB_KEY,
+  }
 }
 
-function disconnectSupabase() {
-sbUrl = ''; sbKey = '';
-localStorage.removeItem('sburl');
-localStorage.removeItem('sbkey');
-document.getElementById('sb-url').value = '';
-document.getElementById('sb-key').value = '';
-updateConnectedUI();
+function sbFetch(path, opts = {}) {
+  const { url, key } = getSbConfig()
+  return fetch(`${url}/rest/v1/${path}`, {
+    ...opts,
+    headers: {
+      'apikey': key,
+      'Authorization': `Bearer ${key}`,
+      'Content-Type': 'application/json',
+      'Prefer': opts.prefer || 'return=representation',
+      ...(opts.headers || {}),
+    },
+  })
 }
 
-function updateConnectedUI() {
-var row     = document.getElementById('connected-row');
-var banner  = document.getElementById('setup-banner');
-var pubBtn  = document.getElementById('publish-btn');
+// ── Redirect handler ─────────────────────────────────────────────────────────
+;(function handleRedirect() {
+  const params = new URLSearchParams(location.search)
+  const slug = params.get('go')
+  if (!slug) return
 
-if (sbUrl && sbKey) {
-row.classList.add('show');
-document.getElementById('connected-text').textContent = sbUrl;
-banner.classList.remove('show');
-} else {
-row.classList.remove('show');
-banner.classList.add('show');
-}
-updateBtns();
-}
+  document.getElementById('redirect-screen').classList.add('show')
+  document.getElementById('app').style.display = 'none'
 
-// Pre-fill settings if already saved
-if (sbUrl) document.getElementById('sb-url').value = sbUrl;
-if (sbKey) document.getElementById('sb-key').value = sbKey;
-updateConnectedUI();
+  // Hand off to edge function — it detects device, logs click, and 302-redirects
+  location.replace(`${EDGE_FN_URL}?slug=${encodeURIComponent(slug)}`)
+})()
 
-// ═══════════════════════════════════════════
-// NAV
-// ═══════════════════════════════════════════
-function showPage(id, tab) {
-document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
-document.querySelectorAll('.nav-tab').forEach(function(t){ t.classList.remove('active'); });
-document.getElementById('page-' + id).classList.add('active');
-tab.classList.add('active');
-if (id === 'dashboard') loadDashboard();
-if (id === 'generator') loadLinksList();
-}
-
-// ═══════════════════════════════════════════
-// PLATFORM DETECTION
-// ═══════════════════════════════════════════
+// ── Platform detection ────────────────────────────────────────────────────────
 function detectPlatform(url) {
-url = url.trim();
-var spre = url.match(/spotify\.com\/(prerelease)\/([A-Za-z0-9]+)/);
-if (spre) return { platform:'spotify', type:'prerelease', id:spre[2], webOnly:true, raw:url };
-
-var sp = url.match(/spotify\.com\/(track|album|artist|playlist|show|episode|user)\/([A-Za-z0-9]+)/);
-if (sp) return { platform:'spotify', type:sp[1], id:sp[2], webOnly:false, raw:url };
-var sp2 = url.match(/spotify:(track|album|artist|playlist|show|episode|user):([A-Za-z0-9]+)/);
-if (sp2) return { platform:'spotify', type:sp2[1], id:sp2[2], webOnly:false, raw:url };
-
-if (/music.apple.com/.test(url)) return { platform:'apple', type:'universal', id:'', webOnly:false, raw:url };
-if (/music.amazon.[a-z.]+/.test(url)) return { platform:'amazon', type:'universal', id:'', webOnly:false, raw:url };
-
-var ytv = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]+)/);
-if (ytv) return { platform:'youtube', type:'video', id:ytv[1], webOnly:false, raw:url };
-if (/(?:music.)?youtube.com/.test(url)) return { platform:'youtube', type:'universal', id:'', webOnly:false, raw:url };
-
-return null;
+  if (/open\.spotify\.com/i.test(url)) return 'spotify'
+  if (/music\.apple\.com/i.test(url)) return 'apple_music'
+  if (/music\.amazon\.com|amzn\.to/i.test(url)) return 'amazon_music'
+  if (/youtube\.com|youtu\.be/i.test(url)) return 'youtube'
+  return 'unknown'
 }
 
-var COLORS = { spotify:'#1ed760', apple:'#fc3c44', amazon:'#00a8e1', youtube:'#ff0000' };
-var LABELS = { spotify:'Spotify', apple:'Apple Music', amazon:'Amazon Music', youtube:'YouTube' };
-
-function buildWebUrl(p) {
-if (p.platform === 'spotify') return 'https://open.spotify.com/' + p.type + '/' + p.id;
-return p.raw.split(/[?&]/)[0];
+function platformLabel(p) {
+  return { spotify: 'Spotify', apple_music: 'Apple Music', amazon_music: 'Amazon Music', youtube: 'YouTube', unknown: 'Unknown' }[p] || p
 }
 
-function buildAppUri(p) {
-if (p.platform === 'spotify' && !p.webOnly) return 'spotify:' + p.type + ':' + p.id;
-if (p.platform === 'youtube' && p.type === 'video') return 'vnd.youtube:' + p.id;
-return null;
+// ── Slug generator ────────────────────────────────────────────────────────────
+function titleToSlug(title) {
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60)
 }
 
-// ═══════════════════════════════════════════
-// GENERATOR UI
-// ═══════════════════════════════════════════
-var currentParsed = null;
-var lastResultUrl = '';
-
-function update() {
-var raw     = document.getElementById('url-input').value.trim();
-var inputEl = document.getElementById('url-input');
-var clearEl = document.getElementById('clear-btn');
-var badge   = document.getElementById('badge');
-var preview = document.getElementById('preview');
-
-clearEl.style.display = raw ? 'block' : 'none';
-inputEl.className = '';
-
-if (!raw) {
-badge.style.display = 'none';
-preview.className = 'preview';
-preview.innerHTML = 'Paste a link above…';
-currentParsed = null; updateBtns(); return;
+function randomSlug() {
+  return Math.random().toString(36).slice(2, 8) + '-' + Math.random().toString(36).slice(2, 6)
 }
 
-var p = detectPlatform(raw);
-if (!p) {
-badge.style.display = 'block'; badge.className = 'badge-row error';
-badge.textContent = '⚠ Not recognized — paste a Spotify, Apple Music, Amazon Music, or YouTube link';
-preview.className = 'preview'; preview.innerHTML = 'Unrecognized link.';
-currentParsed = null; updateBtns(); return;
-}
+// ── Publish ───────────────────────────────────────────────────────────────────
+document.getElementById('publish-btn').addEventListener('click', async () => {
+  const urlVal = document.getElementById('music-url').value.trim()
+  const titleVal = document.getElementById('link-title').value.trim()
+  const slugVal = document.getElementById('link-slug').value.trim()
 
-currentParsed = p;
-inputEl.classList.add(p.platform);
-badge.style.display = 'block';
-badge.className = 'badge-row ' + (p.webOnly ? 'prerelease' : p.platform);
-badge.textContent = p.webOnly
-? '⚡ Prerelease — redirects to web player'
-: '✓ ' + LABELS[p.platform] + ' detected' + (p.type && p.type !== 'universal' ? ' · ' + p.type.toUpperCase() : '');
+  if (!urlVal) { alert('Please enter a music URL.'); return }
 
-var webUrl = buildWebUrl(p);
-var appUri = buildAppUri(p);
-preview.className = 'preview has-value';
+  const platform = detectPlatform(urlVal)
+  const slug = slugVal || (titleVal ? titleToSlug(titleVal) : randomSlug())
+  const btn = document.getElementById('publish-btn')
+  btn.disabled = true; btn.textContent = 'Publishing…'
 
-if (p.webOnly) {
-preview.innerHTML = '<span class="web-only">⚡ Web redirect only</span><br><span class="fallback">↳ ' + webUrl + '</span>';
-} else if (appUri) {
-preview.innerHTML = '<span class="app-uri">' + appUri + '</span><br><span class="fallback">↳ fallback: ' + webUrl + '</span>';
-} else {
-preview.innerHTML = '<span class="fallback">Universal link → ' + webUrl + '</span>';
-}
+  try {
+    const res = await sbFetch('links', {
+      method: 'POST',
+      prefer: 'return=representation',
+      body: JSON.stringify({ slug, url: urlVal, platform, title: titleVal || null }),
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data?.message || data?.error || res.statusText)
 
-document.getElementById('dl-btn').style.setProperty('–pc', COLORS[p.platform] || '#1ed760');
-updateBtns();
-}
-
-function updateBtns() {
-var hasLink = !!currentParsed;
-var hasSb   = !!(sbUrl && sbKey);
-var pub     = document.getElementById('publish-btn');
-var dl      = document.getElementById('dl-btn');
-
-dl.classList.toggle('active', hasLink);
-pub.classList.remove('active', 'waiting');
-
-if (hasLink && hasSb) {
-pub.classList.add('active');
-pub.textContent = 'Publish Link';
-pub.style.cssText = '';
-} else if (hasLink && !hasSb) {
-pub.textContent = 'Connect Supabase to publish';
-pub.style.background = '#111'; pub.style.color = '#252525'; pub.style.cursor = 'not-allowed';
-} else {
-pub.textContent = 'Publish Link';
-pub.style.cssText = '';
-}
-}
-
-function clearInput() {
-document.getElementById('url-input').value = '';
-document.getElementById('result').classList.remove('show');
-update();
-}
-
-document.getElementById('url-input').addEventListener('input', update);
-
-// ═══════════════════════════════════════════
-// PUBLISH — writes directly to Supabase
-// ═══════════════════════════════════════════
-async function publishLink() {
-if (!currentParsed || !sbUrl || !sbKey) return;
-
-var slug    = getSlug();
-var p       = currentParsed;
-var webUrl  = buildWebUrl(p);
-var appUri  = buildAppUri(p);
-var pub     = document.getElementById('publish-btn');
-var resultEl = document.getElementById('result');
-
-pub.classList.remove('active'); pub.classList.add('waiting');
-pub.innerHTML = '<span class="spinner"></span>Publishing…';
-resultEl.classList.remove('show');
-
-try {
-var res = await fetch(sbUrl + '/rest/v1/links', {
-method: 'POST',
-headers: {
-'Content-Type': 'application/json',
-apikey: sbKey,
-Authorization: 'Bearer ' + sbKey,
-Prefer: 'return=minimal,resolution=ignore-duplicates'
-},
-body: JSON.stringify({
-slug:         slug,
-platform:     p.platform,
-app_uri:      appUri || null,
-web_url:      webUrl,
-web_only:     p.webOnly || false,
-original_url: p.raw,
+    const shareUrl = `${location.origin}${location.pathname}?go=${slug}`
+    document.getElementById('result-url').textContent = shareUrl
+    document.getElementById('result-slug').textContent = slug
+    document.getElementById('detected-platform').textContent = platformLabel(platform)
+    document.getElementById('result-box').classList.add('show')
+    document.getElementById('music-url').value = ''
+    document.getElementById('link-title').value = ''
+    document.getElementById('link-slug').value = ''
+  } catch (e) {
+    alert('Error: ' + e.message)
+  } finally {
+    btn.disabled = false; btn.textContent = 'Publish Link'
+  }
 })
-});
 
-if (!res.ok && res.status !== 409) {
-  var err = await res.text();
-  throw new Error(err || res.status);
-}
+document.getElementById('copy-btn').addEventListener('click', () => {
+  navigator.clipboard.writeText(document.getElementById('result-url').textContent)
+  document.getElementById('copy-btn').textContent = 'Copied!'
+  setTimeout(() => { document.getElementById('copy-btn').textContent = 'Copy link' }, 2000)
+})
 
-// Build the shareable URL
-var base = window.location.origin + window.location.pathname;
-lastResultUrl = base + '?go=' + encodeURIComponent(slug);
-document.getElementById('result-url').textContent = lastResultUrl;
-resultEl.classList.add('show');
-loadLinksList();
+document.getElementById('new-btn').addEventListener('click', () => {
+  document.getElementById('result-box').classList.remove('show')
+})
 
-} catch(e) {
-alert('Publish failed: ' + e.message);
-} finally {
-pub.classList.remove('waiting'); pub.classList.add('active');
-pub.textContent = 'Publish Link';
-}
-}
-
-function copyResult() {
-navigator.clipboard.writeText(lastResultUrl).catch(function() {
-var ta = document.createElement('textarea');
-ta.value = lastResultUrl; document.body.appendChild(ta); ta.select();
-document.execCommand('copy'); document.body.removeChild(ta);
-});
-var btn = document.querySelector('.rbtn.copy');
-btn.textContent = '✓ Copied';
-setTimeout(function(){ btn.textContent = 'Copy URL'; }, 2000);
-}
-
-function openResult() { if (lastResultUrl) window.open(lastResultUrl, '_blank'); }
-
-function getSlug() {
-var raw = document.getElementById('slug-input').value.trim();
-if (raw) return raw.replace(/[^a-zA-Z0-9._-]/g, '-');
-if (!currentParsed) return 'music-link';
-return currentParsed.platform + (currentParsed.id ? '-' + currentParsed.id.slice(0,8) : '-link');
-}
-
-// ═══════════════════════════════════════════
-// DOWNLOAD (offline fallback)
-// ═══════════════════════════════════════════
-function downloadFile() {
-if (!currentParsed) return;
-var p     = currentParsed;
-var web   = buildWebUrl(p);
-var app   = buildAppUri(p);
-var color = COLORS[p.platform] || '#fff';
-var label = LABELS[p.platform] || 'Music';
-var css   = 'html,body{margin:0;padding:0;background:#000;width:100%;height:100%;display:flex;align-items:center;justify-content:center;}.dots{display:flex;gap:6px;}.dot{width:6px;height:6px;background:'+color+';border-radius:50%;animation:p 1.2s ease-in-out infinite;}.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}@keyframes p{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}';
-var dots  = '<div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
-var html;
-if (p.webOnly || !app) {
-html = '<!DOCTYPE html><html><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Opening '+label+'…</title><style>'+css+'</style></head><body>'+dots+'<script>window.location.href="'+web+'";<\/script></body></html>';
-} else {
-html = '<!DOCTYPE html><html><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Opening '+label+'…</title><style>'+css+'</style></head><body>'+dots+'<script>var app="'+app+'",web="'+web+'",mob=/iphone|ipad|ipod|android/i.test(navigator.userAgent);function go(){if(!mob){window.location.href=web;return;}var t=setTimeout(function(){window.location.href=web;},1800);document.addEventListener("visibilitychange",function(){if(document.hidden)clearTimeout(t);});window.addEventListener("pagehide",function(){clearTimeout(t);});window.location.href=app;}setTimeout(go,100);<\/script></body></html>';
-}
-var a = document.createElement('a');
-a.href = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
-a.download = getSlug() + '.html'; a.click(); URL.revokeObjectURL(a.href);
-}
-
-// ═══════════════════════════════════════════
-// LINKS LIST
-// ═══════════════════════════════════════════
-async function loadLinksList() {
-if (!sbUrl || !sbKey) return;
-try {
-var res  = await fetch(sbUrl + '/rest/v1/links?select=*&order=created_at.desc', {
-headers: { apikey: sbKey, Authorization: 'Bearer ' + sbKey }
-});
-var rows = await res.json();
-var el   = document.getElementById('links-list');
-if (!rows.length) { el.innerHTML = ''; return; }
-
-var base = window.location.origin + window.location.pathname;
-el.innerHTML = rows.map(function(r) {
-  var url = base + '?go=' + encodeURIComponent(r.slug);
-  return '<div class="link-item"><div><div class="link-slug">/' + r.slug + '</div><div class="link-plat ' + r.platform + '">' + (LABELS[r.platform]||r.platform) + '</div></div><div style="display:flex;gap:6px;"><button class="link-copy" onclick="copyText(this.dataset.url,this)" data-url="' + url.replace(/"/g,'&quot;') + '">Copy</button><button class="link-delete" onclick="deleteLink(this.dataset.slug,this)" data-slug="' + r.slug.replace(/"/g,'&quot;') + '">Delete</button></div></div>';
-}).join('');
-
-} catch(e) {}
-}
-
-async function deleteLink(slug, btn) {
-if (!confirm('Delete /' + slug + '? This cannot be undone.')) return;
-btn.textContent = '…';
-try {
-await fetch(sbUrl + '/rest/v1/links?slug=eq.' + encodeURIComponent(slug), {
-method: 'DELETE',
-headers: { apikey: sbKey, Authorization: 'Bearer ' + sbKey }
-});
-loadLinksList();
-} catch(e) {
-alert('Delete failed: ' + e.message);
-btn.textContent = 'Delete';
-}
-}
-
-function copyText(textOrEl, btn) {
-var text = (typeof textOrEl === 'string') ? textOrEl : textOrEl.dataset.url;
-navigator.clipboard.writeText(text).catch(function() {
-var ta = document.createElement('textarea');
-ta.value = text; document.body.appendChild(ta); ta.select();
-document.execCommand('copy'); document.body.removeChild(ta);
-});
-btn.textContent = '✓';
-setTimeout(function(){ btn.textContent = 'Copy'; }, 1500);
-}
-
-// ═══════════════════════════════════════════
-// DASHBOARD
-// ═══════════════════════════════════════════
-function pct(n, t) { return t ? Math.round(n / t * 100) : 0; }
-
-function groupBy(rows, key) {
-var c = {};
-rows.forEach(function(r){ var k = r[key]||'unknown'; c[k]=(c[k]||0)+1; });
-return Object.entries(c).sort(function(a,b){ return b[1]-a[1]; }).map(function(e){ return {key:e[0],count:e[1]}; });
-}
-
-function renderBars(id, rows, total, colorFn) {
-var el = document.getElementById(id);
-if (!rows.length) { el.innerHTML = '<div class="dash-empty">No data yet</div>'; return; }
-el.innerHTML = rows.slice(0,8).map(function(r) {
-var p = pct(r.count, total);
-var color = colorFn ? colorFn(r.key) : 'var(–green)';
-return '<div class="bar-row"><span class="bar-key" title="'+(r.key||'—')+'">'+(r.key||'—')+'</span><div class="bar-track"><div class="bar-fill" style="width:'+p+'%;background:'+color+';"></div></div><span class="bar-val">'+r.count+'</span></div>';
-}).join('');
-}
-
-function renderDonut(id, rows, total, colorFn) {
-var el = document.getElementById(id);
-if (!rows.length) { el.innerHTML = '<div class="dash-empty" style="padding:12px 0">—</div>'; return; }
-el.innerHTML = rows.slice(0,5).map(function(r) {
-var p = pct(r.count, total);
-var color = colorFn ? colorFn(r.key) : 'var(–green)';
-return '<div class="donut-item"><span class="donut-label">'+(r.key||'unknown')+'</span><div class="donut-bar"><div class="donut-fill" style="width:'+p+'%;background:'+color+';"></div></div><span class="donut-pct">'+p+'%</span></div>';
-}).join('');
-}
-
+// ── Dashboard ─────────────────────────────────────────────────────────────────
 async function loadDashboard() {
-if (!sbUrl || !sbKey) {
-document.getElementById('bar-links').innerHTML = '<div class="dash-empty">Connect Supabase in Settings to see analytics</div>';
-return;
-}
-var btn = document.getElementById('refresh-btn');
-btn.textContent = '↻ Loading…';
+  const [clicksRes, linksRes] = await Promise.all([
+    sbFetch('clicks?order=created_at.desc&limit=50', { prefer: '' }),
+    sbFetch('links?order=created_at.desc', { prefer: '' }),
+  ])
+  if (!clicksRes.ok || !linksRes.ok) {
+    document.getElementById('clicks-body').innerHTML = '<tr><td colspan="6" class="empty">Failed to load — check Settings.</td></tr>'
+    return
+  }
+  const clicks = await clicksRes.json()
+  const links  = await linksRes.json()
 
-try {
-var res  = await fetch(sbUrl + '/rest/v1/clicks?select=*&order=clicked_at.desc&limit=2000', {
-headers: { apikey: sbKey, Authorization: 'Bearer ' + sbKey }
-});
-var rows = await res.json();
+  // Stats
+  const total    = clicks.length
+  const mobileN  = clicks.filter(c => c.device_type === 'mobile').length
+  const appN     = clicks.filter(c => c.opened_app).length
+  document.getElementById('stat-clicks').textContent = total
+  document.getElementById('stat-links').textContent  = links.length
+  document.getElementById('stat-mobile').textContent = total ? Math.round(mobileN / total * 100) + '%' : '—'
+  document.getElementById('stat-app').textContent    = total ? Math.round(appN    / total * 100) + '%' : '—'
 
-var total  = rows.length;
-var mobile = rows.filter(function(r){ return r.device==='mobile'||r.device==='tablet'; }).length;
-var appOp  = rows.filter(function(r){ return r.link_type==='app'; }).length;
-var slugs  = new Set(rows.map(function(r){ return r.slug; })).size;
+  // Clicks table
+  const cb = document.getElementById('clicks-body')
+  cb.innerHTML = clicks.length ? '' : '<tr><td colspan="6" class="empty">No clicks yet.</td></tr>'
+  for (const c of clicks) {
+    const deviceBadge = `<span class="badge badge-${c.device_type}">${c.device_type || '?'}</span>`
+    const appBadge    = c.opened_app
+      ? '<span class="badge badge-app">app</span>'
+      : '<span class="badge badge-web">web</span>'
+    const ref  = c.referrer ? new URL(c.referrer).hostname : '—'
+    const time = c.created_at ? new Date(c.created_at).toLocaleString() : '—'
+    cb.insertAdjacentHTML('beforeend', `<tr>
+      <td><a href="?go=${c.slug}">${c.slug}</a></td>
+      <td>${deviceBadge}</td><td>${c.country || '—'}</td>
+      <td>${appBadge}</td><td title="${c.referrer || ''}">${ref}</td>
+      <td style="white-space:nowrap;color:var(--muted)">${time}</td>
+    </tr>`)
+  }
 
-document.getElementById('s-total').textContent  = total;
-document.getElementById('s-links').textContent  = slugs;
-document.getElementById('s-mobile').textContent = total ? pct(mobile,total)+'%' : '—';
-document.getElementById('s-app').textContent    = total ? pct(appOp,total)+'%'  : '—';
-
-renderBars('bar-links', groupBy(rows,'slug'), total, null);
-renderDonut('d-platform', groupBy(rows,'platform'), total, function(k){ return COLORS[k]||'#555'; });
-renderDonut('d-device', groupBy(rows,'device'), total, function(k){
-  return k==='mobile'?'#1ed760':k==='tablet'?'#00a8e1':'#666';
-});
-renderBars('bar-countries', groupBy(rows,'country'), total, null);
-
-var refRows = rows.filter(function(r){ return r.referrer; });
-var refG = groupBy(refRows,'referrer').map(function(r){
-  try { r.key = new URL(r.key).hostname; } catch(e){}
-  return r;
-});
-renderBars('bar-referrers', refG, refRows.length, null);
-
-var recent = rows.slice(0,20);
-if (!recent.length) {
-  document.getElementById('recent-clicks').innerHTML = '<div class="dash-empty">No clicks yet</div>';
-} else {
-  var html = '<table class="clicks-table"><thead><tr><th>Time</th><th>Link</th><th>Platform</th><th>Type</th><th>Device</th><th>Country</th></tr></thead><tbody>';
-  recent.forEach(function(r){
-    var d = new Date(r.clicked_at);
-    var t = d.toLocaleDateString()+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-    var c = COLORS[r.platform]||'#555';
-    html += '<tr><td>'+t+'</td><td>'+r.slug+'</td><td><span class="pdot" style="background:'+c+'"></span>'+r.platform+'</td><td>'+(r.link_type||'—')+'</td><td>'+(r.device||'—')+'</td><td>'+(r.country||'—')+'</td></tr>';
-  });
-  html += '</tbody></table>';
-  document.getElementById('recent-clicks').innerHTML = html;
-}
-
-} catch(e) {
-console.error(e);
-} finally {
-btn.textContent = '↻ Refresh';
-}
+  // Links table
+  const lb = document.getElementById('links-body')
+  lb.innerHTML = links.length ? '' : '<tr><td colspan="5" class="empty">No links yet.</td></tr>'
+  for (const l of links) {
+    const time = l.created_at ? new Date(l.created_at).toLocaleDateString() : '—'
+    lb.insertAdjacentHTML('beforeend', `<tr>
+      <td><a href="?go=${l.slug}" target="_blank">${l.slug}</a></td>
+      <td>${platformLabel(l.platform || 'unknown')}</td>
+      <td>${l.title || '<span style="color:var(--muted)">—</span>'}</td>
+      <td style="color:var(--muted)">${time}</td>
+      <td><button class="btn btn-secondary btn-sm" onclick="copyShareLink('${l.slug}')">Copy</button></td>
+    </tr>`)
+  }
 }
 
-// Init
-loadLinksList();
+function copyShareLink(slug) {
+  navigator.clipboard.writeText(`${location.origin}${location.pathname}?go=${slug}`)
+}
+
+// ── Settings ──────────────────────────────────────────────────────────────────
+function loadSettingsFields() {
+  document.getElementById('sb-url').value = localStorage.getItem('sb_url') || DEFAULT_SB_URL
+  document.getElementById('sb-key').value = localStorage.getItem('sb_key') || DEFAULT_SB_KEY
+}
+
+document.getElementById('save-settings-btn').addEventListener('click', async () => {
+  const url = document.getElementById('sb-url').value.trim()
+  const key = document.getElementById('sb-key').value.trim()
+  if (!url || !key) { alert('Both fields are required.'); return }
+
+  localStorage.setItem('sb_url', url)
+  localStorage.setItem('sb_key', key)
+
+  const status = document.getElementById('conn-status')
+  status.textContent = 'Testing…'; status.style.color = 'var(--muted)'
+
+  try {
+    const res = await fetch(`${url}/rest/v1/links?limit=1`, {
+      headers: { apikey: key, Authorization: `Bearer ${key}` },
+    })
+    if (res.ok) {
+      status.textContent = '✓ Connected successfully'
+      status.style.color = 'var(--accent)'
+    } else {
+      const err = await res.json()
+      throw new Error(err?.message || res.statusText)
+    }
+  } catch (e) {
+    status.textContent = '✗ ' + e.message
+    status.style.color = '#f87171'
+  }
+})
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'))
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'))
+    btn.classList.add('active')
+    const pane = document.getElementById('tab-' + btn.dataset.tab)
+    if (pane) pane.classList.add('active')
+    if (btn.dataset.tab === 'dashboard') loadDashboard()
+    if (btn.dataset.tab === 'settings')  loadSettingsFields()
+  })
+})
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+loadSettingsFields()
 </script>
-
 </body>
 </html>
