@@ -124,6 +124,20 @@
   .notice strong { color: var(--text); }
   .empty { text-align: center; color: var(--muted); padding: 40px 0; font-size: 0.9rem; }
 
+  /* ── Per-link stats panel ── */
+  .link-stats-row td { padding: 0 !important; border-bottom: 1px solid var(--border); }
+  .link-stats-panel {
+    display: none; background: var(--bg); padding: 16px 18px;
+    border-top: 1px solid var(--border);
+  }
+  .link-stats-panel.open { display: block; }
+  .mini-stats { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  .mini-stat { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 16px; min-width: 90px; }
+  .mini-stat-val { font-size: 1.4rem; font-weight: 700; line-height: 1; }
+  .mini-stat-lbl { font-size: 0.75rem; color: var(--muted); margin-top: 3px; }
+  .link-stats-panel table { font-size: 0.82rem; }
+  .link-stats-panel th { font-size: 0.72rem; }
+
   /* ── Login screen ── */
   #login-screen {
     display: none; position: fixed; inset: 0;
@@ -227,8 +241,8 @@
       <div class="card-title">Your Links</div>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>Slug</th><th>Platform</th><th>Title</th><th>Created</th><th></th></tr></thead>
-          <tbody id="gen-links-body"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
+          <thead><tr><th>Slug</th><th>Platform</th><th>Title</th><th>Created</th><th>Clicks</th><th></th></tr></thead>
+          <tbody id="gen-links-body"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -506,27 +520,99 @@ document.getElementById('new-btn').addEventListener('click', () => {
 
 // ── Generator links list ──────────────────────────────────────────────────────
 async function loadGeneratorLinks() {
-  const res = await sbFetch('links?order=created_at.desc', { prefer: '' })
+  const [linksRes, countsRes] = await Promise.all([
+    sbFetch('links?order=created_at.desc', { prefer: '' }),
+    sbFetch('clicks?select=link_id&link_id=not.is.null', { prefer: '' }),
+  ])
   const tbody = document.getElementById('gen-links-body')
-  if (!res.ok) { tbody.innerHTML = '<tr><td colspan="5" class="empty">Failed to load.</td></tr>'; return }
-  const links = await res.json()
-  tbody.innerHTML = links.length ? '' : '<tr><td colspan="5" class="empty">No links yet.</td></tr>'
+  if (!linksRes.ok) { tbody.innerHTML = '<tr><td colspan="6" class="empty">Failed to load.</td></tr>'; return }
+  const links  = await linksRes.json()
+  const clicks = countsRes.ok ? await countsRes.json() : []
+
+  // Build a click-count map keyed by link_id
+  const countMap = {}
+  for (const c of clicks) countMap[c.link_id] = (countMap[c.link_id] || 0) + 1
+
+  tbody.innerHTML = links.length ? '' : '<tr><td colspan="6" class="empty">No links yet.</td></tr>'
   for (const l of links) {
-    const time = l.created_at ? new Date(l.created_at).toLocaleDateString() : '—'
-    const row = document.createElement('tr')
+    const time  = l.created_at ? new Date(l.created_at).toLocaleDateString() : '—'
+    const count = countMap[l.id] || 0
+    const row   = document.createElement('tr')
     row.id = `gen-row-${l.id}`
     row.innerHTML = `
       <td><a href="?go=${l.slug}" target="_blank">${l.slug}</a></td>
       <td>${platformLabel(l.platform || 'unknown')}</td>
       <td>${l.title || '<span style="color:var(--muted)">—</span>'}</td>
       <td style="color:var(--muted)">${time}</td>
-      <td style="display:flex;gap:6px">
+      <td><strong>${count}</strong></td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-secondary btn-sm" onclick="toggleLinkStats('${l.id}','${l.slug}')">Stats</button>
         <button class="btn btn-secondary btn-sm" onclick="copyShareLink('${l.slug}')">Copy</button>
         <button class="btn btn-sm" style="background:#3a1a1a;color:#f87171;border:1px solid #5a2a2a"
           onclick="deleteLink('${l.id}','${l.slug}')">Delete</button>
       </td>`
     tbody.appendChild(row)
+
+    // Expandable stats row (hidden by default)
+    const statsRow = document.createElement('tr')
+    statsRow.className = 'link-stats-row'
+    statsRow.id = `stats-row-${l.id}`
+    statsRow.innerHTML = `<td colspan="6"><div class="link-stats-panel" id="stats-panel-${l.id}">
+      <div style="color:var(--muted);font-size:.85rem">Loading…</div>
+    </div></td>`
+    tbody.appendChild(statsRow)
   }
+}
+
+async function toggleLinkStats(id, slug) {
+  const panel = document.getElementById(`stats-panel-${id}`)
+  const isOpen = panel.classList.contains('open')
+  // Close all open panels first
+  document.querySelectorAll('.link-stats-panel.open').forEach(p => p.classList.remove('open'))
+  document.querySelectorAll('.btn-secondary.btn-sm[data-stats-open]').forEach(b => { b.textContent = 'Stats'; delete b.dataset.statsOpen })
+  if (isOpen) return // was open — just close it
+
+  panel.classList.add('open')
+  const btn = document.querySelector(`#gen-row-${id} button[onclick*="toggleLinkStats"]`)
+  if (btn) { btn.textContent = 'Hide'; btn.dataset.statsOpen = '1' }
+
+  // Fetch all clicks for this link
+  const res = await sbFetch(`clicks?link_id=eq.${id}&order=created_at.desc`, { prefer: '' })
+  if (!res.ok) { panel.innerHTML = '<div style="color:#f87171;font-size:.85rem">Failed to load stats.</div>'; return }
+  const clicks = await res.json()
+
+  if (!clicks.length) {
+    panel.innerHTML = '<div style="color:var(--muted);font-size:.85rem;padding:8px 0">No clicks yet for this link.</div>'
+    return
+  }
+
+  const total   = clicks.length
+  const mobileN = clicks.filter(c => c.device_type === 'mobile').length
+  const appN    = clicks.filter(c => c.opened_app).length
+  const countries = [...new Set(clicks.map(c => c.country).filter(Boolean))]
+
+  const rows = clicks.slice(0, 10).map(c => {
+    const badge = `<span class="badge badge-${c.device_type || 'desktop'}">${c.device_type || '?'}</span>`
+    const app   = c.opened_app ? '<span class="badge badge-app">app</span>' : '<span class="badge badge-web">web</span>'
+    const time  = c.created_at ? new Date(c.created_at).toLocaleString() : '—'
+    const ref   = c.referrer ? (() => { try { return new URL(c.referrer).hostname } catch { return c.referrer.slice(0,30) } })() : '—'
+    return `<tr><td>${badge}</td><td>${c.country||'—'}</td><td>${app}</td><td title="${c.referrer||''}">${ref}</td><td style="color:var(--muted);white-space:nowrap">${time}</td></tr>`
+  }).join('')
+
+  panel.innerHTML = `
+    <div class="mini-stats">
+      <div class="mini-stat"><div class="mini-stat-val">${total}</div><div class="mini-stat-lbl">Total Clicks</div></div>
+      <div class="mini-stat"><div class="mini-stat-val">${total ? Math.round(mobileN/total*100) : 0}%</div><div class="mini-stat-lbl">Mobile</div></div>
+      <div class="mini-stat"><div class="mini-stat-val">${total ? Math.round(appN/total*100) : 0}%</div><div class="mini-stat-lbl">App Opens</div></div>
+      <div class="mini-stat"><div class="mini-stat-val">${countries.length}</div><div class="mini-stat-lbl">Countries</div></div>
+    </div>
+    <div style="font-size:.78rem;color:var(--muted);margin-bottom:8px">Countries: ${countries.join(', ') || '—'}</div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Device</th><th>Country</th><th>Opened</th><th>Referrer</th><th>Time</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+    ${total > 10 ? `<div style="font-size:.78rem;color:var(--muted);margin-top:8px">Showing 10 of ${total} clicks</div>` : ''}
+  `
 }
 
 async function deleteLink(id, slug) {
@@ -672,3 +758,4 @@ loadSettingsFields();
 </script>
 </body>
 </html>
+
