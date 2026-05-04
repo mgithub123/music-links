@@ -224,15 +224,26 @@
 
     <!-- Result -->
     <div class="result-box" id="result-box">
-      <div class="card-title">Your shareable link</div>
-      <div class="result-url" id="result-url"></div>
-      <div class="copy-row">
-        <button class="btn btn-secondary btn-sm" id="copy-btn">Copy link</button>
-        <button class="btn btn-secondary btn-sm" id="new-btn">Create another</button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:4px">
+
+        <div>
+          <div class="card-title" style="margin-bottom:6px">🎵 Fan Link <span style="font-size:.75rem;color:var(--muted);text-transform:none;letter-spacing:0">(social, bio, etc.)</span></div>
+          <div class="result-url" id="result-url" style="font-size:.88rem"></div>
+          <button class="btn btn-secondary btn-sm" id="copy-btn" style="margin-top:6px">Copy</button>
+        </div>
+
+        <div>
+          <div class="card-title" style="margin-bottom:6px">📋 Submit Link <span style="font-size:.75rem;color:var(--muted);text-transform:none;letter-spacing:0">(SubmitHub, blogs, etc.)</span></div>
+          <div class="result-url" id="result-submit-url" style="font-size:.88rem"></div>
+          <button class="btn btn-secondary btn-sm" id="copy-submit-btn" style="margin-top:6px">Copy</button>
+        </div>
+
       </div>
-      <div style="margin-top:14px;font-size:.82rem;color:var(--muted)">
-        Platform detected: <strong id="detected-platform">—</strong> &nbsp;|&nbsp;
-        Slug: <strong id="result-slug">—</strong>
+      <div style="margin-top:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <div style="font-size:.82rem;color:var(--muted)">
+          Platform: <strong id="detected-platform">—</strong> &nbsp;|&nbsp; Slug: <strong id="result-slug">—</strong>
+        </div>
+        <button class="btn btn-secondary btn-sm" id="new-btn">Create another</button>
       </div>
     </div>
 
@@ -492,8 +503,10 @@ document.getElementById('publish-btn').addEventListener('click', async () => {
     const data = await res.json()
     if (!res.ok) throw new Error(data?.message || data?.error || res.statusText)
 
-    const shareUrl = `${location.origin}${location.pathname}?go=${slug}`
+    const shareUrl  = `${location.origin}${location.pathname}?go=${slug}`
+    const submitUrl = `${EDGE_FN_URL}?slug=${slug}`
     document.getElementById('result-url').textContent = shareUrl
+    document.getElementById('result-submit-url').textContent = submitUrl
     document.getElementById('result-slug').textContent = slug
     document.getElementById('detected-platform').textContent = platformLabel(platform)
     document.getElementById('result-box').classList.add('show')
@@ -511,7 +524,13 @@ document.getElementById('publish-btn').addEventListener('click', async () => {
 document.getElementById('copy-btn').addEventListener('click', () => {
   navigator.clipboard.writeText(document.getElementById('result-url').textContent)
   document.getElementById('copy-btn').textContent = 'Copied!'
-  setTimeout(() => { document.getElementById('copy-btn').textContent = 'Copy link' }, 2000)
+  setTimeout(() => { document.getElementById('copy-btn').textContent = 'Copy' }, 2000)
+})
+
+document.getElementById('copy-submit-btn').addEventListener('click', () => {
+  navigator.clipboard.writeText(document.getElementById('result-submit-url').textContent)
+  document.getElementById('copy-submit-btn').textContent = 'Copied!'
+  setTimeout(() => { document.getElementById('copy-submit-btn').textContent = 'Copy' }, 2000)
 })
 
 document.getElementById('new-btn').addEventListener('click', () => {
@@ -547,7 +566,8 @@ async function loadGeneratorLinks() {
       <td><strong>${count}</strong></td>
       <td style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="btn btn-secondary btn-sm" onclick="toggleLinkStats('${l.id}','${l.slug}')">Stats</button>
-        <button class="btn btn-secondary btn-sm" onclick="copyShareLink('${l.slug}')">Copy</button>
+        <button class="btn btn-secondary btn-sm" onclick="copyShareLink('${l.slug}',this)">Fan Link</button>
+        <button class="btn btn-secondary btn-sm" onclick="copySubmitLink('${l.slug}',this)">Submit Link</button>
         <button class="btn btn-sm" style="background:#3a1a1a;color:#f87171;border:1px solid #5a2a2a"
           onclick="deleteLink('${l.id}','${l.slug}')">Delete</button>
       </td>`
@@ -694,8 +714,14 @@ async function loadDashboard() {
   }
 }
 
-function copyShareLink(slug) {
+function copyShareLink(slug, btn) {
   navigator.clipboard.writeText(`${location.origin}${location.pathname}?go=${slug}`)
+  if (btn) { const t = btn.textContent; btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = t, 2000) }
+}
+
+function copySubmitLink(slug, btn) {
+  navigator.clipboard.writeText(`${EDGE_FN_URL}?slug=${slug}`)
+  if (btn) { const t = btn.textContent; btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = t, 2000) }
 }
 
 // ── Settings ──────────────────────────────────────────────────────────────────
@@ -758,4 +784,5 @@ loadSettingsFields();
 </script>
 </body>
 </html>
+
 
