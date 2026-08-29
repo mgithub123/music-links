@@ -5,759 +5,678 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Music Links</title>
 <style>
-  :root {
-    --bg: #0f0f13;
-    --surface: #1a1a24;
-    --surface2: #22222e;
-    --border: #2e2e3e;
-    --accent: #1db954;
-    --accent2: #fc3c44;
-    --text: #e8e8f0;
-    --muted: #888899;
-    --radius: 10px;
-    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font);
-    min-height: 100vh;
-    font-size: 15px;
-    line-height: 1.5;
-  }
-  a { color: var(--accent); text-decoration: none; }
-  a:hover { text-decoration: underline; }
-
-  /* ── Layout ── */
-  .container { max-width: 800px; margin: 0 auto; padding: 24px 16px 60px; }
-  header { text-align: center; padding: 32px 0 24px; }
-  header h1 { font-size: 1.8rem; font-weight: 700; letter-spacing: -0.5px; }
-  header p { color: var(--muted); margin-top: 4px; font-size: 0.9rem; }
-
-  /* ── Tabs ── */
-  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 28px; }
-  .tab-btn {
-    background: none; border: none; color: var(--muted);
-    padding: 10px 18px; cursor: pointer; font-size: 0.9rem; font-family: var(--font);
-    border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .15s;
-  }
-  .tab-btn:hover { color: var(--text); }
-  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
-  .tab-pane { display: none; }
-  .tab-pane.active { display: block; }
-
-  /* ── Forms ── */
-  .field { margin-bottom: 18px; }
-  .field label { display: block; font-size: 0.82rem; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px; }
-  .field input, .field select {
-    width: 100%; background: var(--surface); border: 1px solid var(--border);
-    color: var(--text); padding: 10px 14px; border-radius: var(--radius);
-    font-size: 0.95rem; font-family: var(--font); outline: none; transition: border-color .15s;
-  }
-  .field input:focus, .field select:focus { border-color: var(--accent); }
-  .field input::placeholder { color: var(--muted); }
-
-  /* ── Buttons ── */
-  .btn {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 10px 22px; border-radius: var(--radius); border: none;
-    font-size: 0.9rem; font-family: var(--font); cursor: pointer; transition: opacity .15s;
-  }
-  .btn:hover { opacity: 0.85; }
-  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-  .btn-primary { background: var(--accent); color: #000; font-weight: 600; }
-  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
-  .btn-sm { padding: 6px 14px; font-size: 0.82rem; }
-
-  /* ── Cards ── */
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 22px; margin-bottom: 16px; }
-  .card-title { font-size: 0.82rem; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
-
-  /* ── Stat grid ── */
-  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin-bottom: 24px; }
-  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
-  .stat-value { font-size: 2rem; font-weight: 700; line-height: 1; }
-  .stat-label { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
-
-  /* ── Result box ── */
-  .result-box {
-    background: var(--surface2); border: 1px solid var(--accent); border-radius: var(--radius);
-    padding: 16px 18px; margin-top: 20px; display: none;
-  }
-  .result-box.show { display: block; }
-  .result-url { font-size: 1rem; color: var(--accent); word-break: break-all; margin-bottom: 10px; }
-  .copy-row { display: flex; gap: 8px; }
-
-  /* ── Table ── */
-  .tbl-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
-  th { text-align: left; color: var(--muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: .4px; padding: 8px 12px; border-bottom: 1px solid var(--border); }
-  td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: var(--surface2); }
-
-  /* ── Badges ── */
-  .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 0.76rem; font-weight: 600; }
-  .badge-mobile { background: #1d3a4a; color: #4db8e8; }
-  .badge-desktop { background: #2a1d40; color: #a78bfa; }
-  .badge-app { background: #1a3328; color: var(--accent); }
-  .badge-web { background: #2e2a1a; color: #f59e0b; }
-
-  /* ── Redirect overlay ── */
-  #redirect-screen {
-    display: none; position: fixed; inset: 0;
-    background: var(--bg); z-index: 100;
-    flex-direction: column; align-items: center; justify-content: center; gap: 18px;
-  }
-  #redirect-screen.show { display: flex; }
-  .spinner {
-    width: 40px; height: 40px; border: 3px solid var(--border);
-    border-top-color: var(--accent); border-radius: 50%;
-    animation: spin .7s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  #redirect-screen p { color: var(--muted); font-size: 0.9rem; }
-
-  /* ── Misc ── */
-  .notice { background: var(--surface2); border-left: 3px solid var(--accent); padding: 12px 16px; border-radius: 0 var(--radius) var(--radius) 0; font-size: 0.88rem; color: var(--muted); margin-bottom: 18px; }
-  .notice strong { color: var(--text); }
-  .empty { text-align: center; color: var(--muted); padding: 40px 0; font-size: 0.9rem; }
-
-  /* ── Per-link stats panel ── */
-  .link-stats-row td { padding: 0 !important; border-bottom: 1px solid var(--border); }
-  .link-stats-panel {
-    display: none; background: var(--bg); padding: 16px 18px;
-    border-top: 1px solid var(--border);
-  }
-  .link-stats-panel.open { display: block; }
-  .mini-stats { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
-  .mini-stat { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 16px; min-width: 90px; }
-  .mini-stat-val { font-size: 1.4rem; font-weight: 700; line-height: 1; }
-  .mini-stat-lbl { font-size: 0.75rem; color: var(--muted); margin-top: 3px; }
-  .link-stats-panel table { font-size: 0.82rem; }
-  .link-stats-panel th { font-size: 0.72rem; }
-
-  /* ── Login screen ── */
-  #login-screen {
-    display: none; position: fixed; inset: 0;
-    background: var(--bg); z-index: 200;
-    align-items: center; justify-content: center;
-  }
-  #login-screen.show { display: flex; }
-  .login-card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 36px 32px; width: 100%; max-width: 360px;
-  }
-  .login-card h2 { font-size: 1.2rem; margin-bottom: 6px; }
-  .login-card p  { color: var(--muted); font-size: 0.85rem; margin-bottom: 24px; }
-  .login-error   { color: #f87171; font-size: 0.85rem; margin-top: 12px; min-height: 20px; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080808;--surface:#0e0e0e;--surface2:#131313;--border:#1c1c1c;
+  --text:#e0e0e0;--muted:#444;--dim:#1e1e1e;
+  --spotify:#1ed760;--apple:#fc3c44;--amazon:#00a8e1;--youtube:#ff0000;
+  --pre:#f0a500;--green:#00c7b7;
+}
+body{background:var(--bg);color:var(--text);font-family:'Courier New',Courier,monospace;min-height:100vh}
+nav{display:flex;align-items:center;justify-content:space-between;padding:18px 28px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(8,8,8,.96);backdrop-filter:blur(8px);z-index:10}
+.nav-brand{font-size:12px;font-weight:900;letter-spacing:.1em;color:#fff;text-transform:uppercase}
+.nav-tabs{display:flex;gap:4px}
+.nav-tab{font-family:inherit;font-size:10px;letter-spacing:.2em;text-transform:uppercase;padding:7px 14px;border-radius:6px;border:none;background:transparent;color:var(--muted);cursor:pointer;transition:all .12s}
+.nav-tab.active{background:var(--surface2);color:var(--text)}
+.nav-tab:hover{color:#888}
+.page{display:none;padding:48px 20px 80px}
+.page.active{display:flex;flex-direction:column;align-items:center}
+.card{width:100%;max-width:520px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:32px;margin-bottom:16px}
+.field{margin-bottom:22px}
+label{display:block;font-size:10px;letter-spacing:.3em;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
+.pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.pill{font-size:9px;letter-spacing:.15em;text-transform:uppercase;padding:4px 10px;border-radius:20px;border:1px solid var(--dim);color:var(--muted)}
+.pill.spotify{border-color:var(--spotify);color:var(--spotify)}
+.pill.apple{border-color:var(--apple);color:var(--apple)}
+.pill.amazon{border-color:var(--amazon);color:var(--amazon)}
+.pill.youtube{border-color:var(--youtube);color:var(--youtube)}
+.input-wrap{position:relative}
+input[type=text],input[type=password]{width:100%;background:var(--bg);border:1px solid var(--dim);border-radius:8px;padding:13px 40px 13px 14px;color:var(--text);font-family:inherit;font-size:12px;outline:none;transition:border-color .2s}
+input:focus{border-color:#2a2a2a}
+input.spotify{border-color:var(--spotify)}
+input.apple{border-color:var(--apple)}
+input.amazon{border-color:var(--amazon)}
+input.youtube{border-color:var(--youtube)}
+.clear-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:17px;display:none;padding:0}
+.badge{display:none;margin-top:8px;font-size:10px;letter-spacing:.08em;padding:6px 10px;border-radius:6px;border:1px solid}
+.badge.spotify{color:var(--spotify);border-color:rgba(30,215,96,.3);background:rgba(30,215,96,.05)}
+.badge.apple{color:var(--apple);border-color:rgba(252,60,68,.3);background:rgba(252,60,68,.05)}
+.badge.amazon{color:var(--amazon);border-color:rgba(0,168,225,.3);background:rgba(0,168,225,.05)}
+.badge.youtube{color:var(--youtube);border-color:rgba(255,0,0,.3);background:rgba(255,0,0,.05)}
+.badge.pre{color:var(--pre);border-color:rgba(240,165,0,.3);background:rgba(240,165,0,.05)}
+.badge.err{color:#555;border-color:#1e1e1e}
+.preview{background:var(--bg);border:1px solid var(--dim);border-radius:8px;padding:13px 14px;font-size:11px;color:#2a2a2a;word-break:break-all;line-height:1.7;min-height:58px;font-style:italic}
+.preview.has-val{font-style:normal;color:#555}
+.preview .app-uri{color:#777}
+.preview .fb{color:#2a2a2a;font-size:10px}
+.preview .web-only{color:var(--pre)}
+.btn-row{display:flex;gap:8px}
+.btn{flex:1;border:none;border-radius:8px;padding:14px;cursor:not-allowed;font-family:inherit;font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;transition:all .12s;background:#111;color:#252525}
+.btn.on{cursor:pointer}
+.btn.on:hover{filter:brightness(1.08)}
+#pub-btn.on{background:var(--green);color:#000}
+#pub-btn.wait{background:#0a3d39;color:var(--green);cursor:wait}
+#dl-btn{flex:0 0 auto;padding:14px 18px;background:transparent;border:1px solid var(--dim);color:var(--muted);font-size:10px}
+#dl-btn.on{color:#000;border-color:transparent}
+.result{display:none;margin-top:14px;background:rgba(0,199,183,.05);border:1px solid rgba(0,199,183,.2);border-radius:8px;padding:14px 16px}
+.result.show{display:block}
+.result-label{font-size:10px;letter-spacing:.2em;color:var(--green);text-transform:uppercase;margin-bottom:8px}
+.result-url{font-size:12px;color:#bbb;word-break:break-all;margin-bottom:10px}
+.result-acts{display:flex;gap:8px}
+.rbtn{font-family:inherit;font-size:10px;letter-spacing:.15em;text-transform:uppercase;padding:8px 14px;border-radius:6px;cursor:pointer;font-weight:700}
+.rbtn.copy{background:var(--green);border:none;color:#000}
+.rbtn.open{background:transparent;border:1px solid #2a2a2a;color:#666}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{display:inline-block;width:10px;height:10px;border:2px solid rgba(0,199,183,.3);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;margin-right:6px;vertical-align:middle}
+.links-list{width:100%;max-width:520px;display:flex;flex-direction:column;gap:8px}
+.link-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.link-slug{font-size:12px;color:#777}
+.link-plat{font-size:9px;letter-spacing:.1em;text-transform:uppercase;margin-top:3px}
+.link-plat.spotify{color:var(--spotify)}
+.link-plat.apple{color:var(--apple)}
+.link-plat.amazon{color:var(--amazon)}
+.link-plat.youtube{color:var(--youtube)}
+.lbtn{font-family:inherit;font-size:9px;letter-spacing:.15em;text-transform:uppercase;padding:6px 12px;border-radius:5px;background:transparent;border:1px solid #1e1e1e;color:#333;cursor:pointer;white-space:nowrap}
+.lbtn:hover{border-color:#333;color:#666}
+.lbtn.del:hover{border-color:#ff4444;color:#ff4444}
+.dash-wrap{width:100%;max-width:960px}
+.dash-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.dash-heading{font-size:10px;letter-spacing:.3em;color:#1e1e1e;text-transform:uppercase}
+.refresh-btn{font-family:inherit;font-size:10px;letter-spacing:.2em;text-transform:uppercase;padding:7px 14px;border-radius:6px;background:transparent;border:1px solid #1a1a1a;color:#252525;cursor:pointer}
+.refresh-btn:hover{border-color:#2a2a2a;color:#444}
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 22px}
+.stat-label{font-size:10px;letter-spacing:.25em;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
+.stat-value{font-size:32px;font-weight:900;letter-spacing:-.04em;color:#fff}
+.section{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:24px;margin-bottom:14px}
+.section-title{font-size:10px;letter-spacing:.3em;color:var(--muted);text-transform:uppercase;margin-bottom:18px}
+.bar-list{display:flex;flex-direction:column;gap:10px}
+.bar-row{display:flex;align-items:center;gap:12px}
+.bar-key{font-size:11px;color:#555;width:130px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{flex:1;background:#111;border-radius:3px;height:5px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;background:var(--green);transition:width .5s}
+.bar-val{font-size:11px;color:#333;width:32px;text-align:right;flex-shrink:0}
+.split-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.donut-row{display:flex;flex-direction:column;gap:8px}
+.donut-item{display:flex;align-items:center;gap:10px}
+.donut-label{font-size:11px;color:#444;width:80px;flex-shrink:0}
+.donut-bar{flex:1;background:#111;border-radius:3px;height:4px;overflow:hidden}
+.donut-fill{height:100%;border-radius:3px;transition:width .5s}
+.donut-pct{font-size:11px;color:#333;width:36px;text-align:right;flex-shrink:0}
+.clicks-table{width:100%;border-collapse:collapse}
+.clicks-table th{font-size:9px;letter-spacing:.2em;color:#252525;text-transform:uppercase;text-align:left;padding:0 0 12px;border-bottom:1px solid #111}
+.clicks-table td{font-size:11px;color:#3a3a3a;padding:9px 0;border-bottom:1px solid #0e0e0e}
+.clicks-table td:first-child{color:#555}
+.pdot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.empty{text-align:center;padding:32px 0;font-size:11px;color:#1e1e1e;letter-spacing:.1em}
+.settings-card{width:100%;max-width:520px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:32px}
+.settings-title{font-size:10px;letter-spacing:.3em;color:var(--muted);text-transform:uppercase;margin-bottom:24px}
+.settings-field{margin-bottom:18px}
+.settings-row{display:flex;gap:8px}
+.save-btn{font-family:inherit;font-size:10px;letter-spacing:.2em;text-transform:uppercase;padding:13px 18px;border-radius:8px;background:var(--green);border:none;color:#000;cursor:pointer;font-weight:700;flex-shrink:0}
+.conn-row{display:none;align-items:center;gap:10px;padding:12px 14px;background:rgba(0,199,183,.05);border:1px solid rgba(0,199,183,.2);border-radius:8px;margin-top:8px}
+.conn-row.show{display:flex}
+.conn-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 5px rgba(0,199,183,.5);flex-shrink:0}
+.conn-text{font-size:11px;color:#3a3a3a;flex:1}
+.disc-btn{font-family:inherit;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:5px 10px;border-radius:5px;background:transparent;border:1px solid #1e1e1e;color:#333;cursor:pointer}
+.note{font-size:10px;color:#252525;margin-top:10px;line-height:1.7}
+.note a{color:var(--green);text-decoration:none}
+.note code{color:#333;background:#111;padding:1px 5px;border-radius:3px;font-size:10px;font-family:inherit}
 </style>
 </head>
 <body>
+<nav>
+  <span class="nav-brand">Music Links</span>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('generator',this)">Generator</button>
+    <button class="nav-tab" onclick="showPage('dashboard',this)">Dashboard</button>
+    <button class="nav-tab" onclick="showPage('settings',this)">Settings</button>
+  </div>
+</nav>
 
-<!-- Login screen -->
-<div id="login-screen">
-  <div class="login-card">
-    <h2>🎵 Music Links</h2>
-    <p>Sign in to manage your links</p>
+<div class="page active" id="page-generator">
+  <div class="card">
     <div class="field">
-      <label>Email</label>
-      <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email">
+      <label>Paste any music link</label>
+      <div class="pills">
+        <span class="pill spotify">Spotify</span>
+        <span class="pill apple">Apple Music</span>
+        <span class="pill amazon">Amazon Music</span>
+        <span class="pill youtube">YouTube</span>
+      </div>
+      <div class="input-wrap">
+        <input type="text" id="url-input" placeholder="Paste a link from any platform..." autocomplete="off" spellcheck="false">
+        <button class="clear-btn" id="clear-btn" onclick="clearInput()">x</button>
+      </div>
+      <div class="badge" id="badge"></div>
     </div>
     <div class="field">
-      <label>Password</label>
-      <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+      <label>Slug (your shareable URL path)</label>
+      <input type="text" id="slug-input" placeholder="e.g. work-work-work" autocomplete="off" spellcheck="false">
     </div>
-    <button class="btn btn-primary" id="login-btn" style="width:100%">Sign In</button>
-    <div class="login-error" id="login-error"></div>
+    <div class="field" style="margin-bottom:20px">
+      <label>Preview</label>
+      <div class="preview" id="preview">Paste a link above...</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" id="pub-btn" onclick="publishLink()">Publish Link</button>
+      <button class="btn" id="dl-btn" onclick="downloadFile()">Save</button>
+    </div>
+    <div class="result" id="result">
+      <div class="result-label">Live</div>
+      <div class="result-url" id="result-url"></div>
+      <div class="result-acts">
+        <button class="rbtn copy" onclick="copyResult()">Copy URL</button>
+        <button class="rbtn open" onclick="openResult()">Open</button>
+      </div>
+    </div>
+  </div>
+  <div class="links-list" id="links-list"></div>
+</div>
+
+<div class="page" id="page-dashboard">
+  <div class="dash-wrap">
+    <div class="dash-top">
+      <span class="dash-heading">Analytics</span>
+      <button class="refresh-btn" id="refresh-btn" onclick="loadDashboard()">Refresh</button>
+    </div>
+    <div class="dash-grid">
+      <div class="stat-card"><div class="stat-label">Total Clicks</div><div class="stat-value" id="s-total">-</div></div>
+      <div class="stat-card"><div class="stat-label">Links</div><div class="stat-value" id="s-links">-</div></div>
+      <div class="stat-card"><div class="stat-label">Mobile</div><div class="stat-value" id="s-mobile">-</div></div>
+      <div class="stat-card"><div class="stat-label">App Opens</div><div class="stat-value" id="s-app">-</div></div>
+    </div>
+    <div class="section">
+      <div class="section-title">Clicks per link</div>
+      <div class="bar-list" id="bar-links"><div class="empty">No data yet</div></div>
+    </div>
+    <div class="split-grid">
+      <div class="section" style="margin-bottom:0">
+        <div class="section-title">Platform</div>
+        <div class="donut-row" id="d-platform"><div class="empty" style="padding:12px 0">-</div></div>
+      </div>
+      <div class="section" style="margin-bottom:0">
+        <div class="section-title">Device</div>
+        <div class="donut-row" id="d-device"><div class="empty" style="padding:12px 0">-</div></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Top countries</div>
+      <div class="bar-list" id="bar-countries"><div class="empty">No data yet</div></div>
+    </div>
+    <div class="section">
+      <div class="section-title">Top referrers</div>
+      <div class="bar-list" id="bar-referrers"><div class="empty">No data yet</div></div>
+    </div>
+    <div class="section">
+      <div class="section-title">Recent clicks</div>
+      <div id="recent-clicks"><div class="empty">No data yet</div></div>
+    </div>
   </div>
 </div>
 
-<!-- Redirect overlay (shown when ?go=slug) -->
-<div id="redirect-screen">
-  <div class="spinner"></div>
-  <p id="redirect-msg">Opening link…</p>
-  <p style="font-size:.78rem;color:var(--border);margin-top:4px">You can close this tab</p>
+<div class="page" id="page-settings">
+  <div class="settings-card">
+    <div class="settings-title">Supabase Connection</div>
+    <div class="settings-field">
+      <label>Project URL</label>
+      <input type="text" id="sb-url" placeholder="https://xxxx.supabase.co" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="settings-field">
+      <label>Anon Key</label>
+      <div class="settings-row">
+        <input type="password" id="sb-key" placeholder="Your anon key" autocomplete="off">
+        <button class="save-btn" onclick="saveSupabase()">Connect</button>
+      </div>
+    </div>
+    <div class="conn-row" id="conn-row">
+      <div class="conn-dot"></div>
+      <span class="conn-text" id="conn-text">Connected</span>
+      <button class="disc-btn" onclick="disconnectSupabase()">Disconnect</button>
+    </div>
+    <div class="note">
+      Get these from your Supabase project &rarr; <a href="https://supabase.com/dashboard" target="_blank">Settings &rarr; API</a>.<br>
+      Use the <code>anon public</code> key.<br><br>
+      Run this SQL in Supabase &rarr; SQL Editor:<br><br>
+      <code>create table if not exists links (id bigserial primary key, slug text unique not null, platform text, app_uri text, web_url text, web_only boolean default false, original_url text, created_at timestamptz default now());</code><br><br>
+      <code>create table if not exists clicks (id bigserial primary key, slug text, platform text, link_type text, device text, country text, referrer text, clicked_at timestamptz default now());</code>
+    </div>
+  </div>
 </div>
 
-<!-- Main app -->
-<div class="container" id="app" style="display:none">
-  <header>
-    <h1>🎵 Music Links</h1>
-    <p>Smart deep links for every music platform</p>
-    <div style="margin-top:10px">
-      <span style="font-size:.8rem;color:var(--muted)" id="auth-email"></span>
-      <button class="btn btn-secondary btn-sm" id="logout-btn" style="margin-left:10px">Sign Out</button>
-    </div>
-  </header>
-
-  <nav class="tabs">
-    <button class="tab-btn active" data-tab="generator">Generator</button>
-    <button class="tab-btn" data-tab="dashboard">Dashboard</button>
-    <button class="tab-btn" data-tab="settings">Settings</button>
-  </nav>
-
-  <!-- ── Generator Tab ── -->
-  <section class="tab-pane active" id="tab-generator">
-    <div class="notice">
-      Paste a <strong>Spotify, Apple Music, Amazon Music, or YouTube</strong> URL.
-      We'll generate a smart link that opens the right app on every device.
-    </div>
-
-    <div class="card">
-      <div class="field">
-        <label>Music URL</label>
-        <input type="url" id="music-url" placeholder="https://open.spotify.com/track/…">
-      </div>
-      <div class="field">
-        <label>Title <span style="color:var(--muted);font-size:.8rem">(optional)</span></label>
-        <input type="text" id="link-title" placeholder="e.g. Work Work Work">
-      </div>
-      <div class="field">
-        <label>Custom slug <span style="color:var(--muted);font-size:.8rem">(optional — auto-generated if blank)</span></label>
-        <input type="text" id="link-slug" placeholder="e.g. work-work-work"
-          oninput="this.value=this.value.replace(/\s+/g,'-').replace(/[^a-z0-9-]/gi,'').toLowerCase()">
-      </div>
-      <button class="btn btn-primary" id="publish-btn">Publish Link</button>
-    </div>
-
-    <!-- Result -->
-    <div class="result-box" id="result-box">
-      <div class="card-title">Your shareable link</div>
-      <div class="result-url" id="result-url"></div>
-      <div class="copy-row">
-        <button class="btn btn-secondary btn-sm" id="copy-btn">Copy link</button>
-        <button class="btn btn-secondary btn-sm" id="new-btn">Create another</button>
-      </div>
-      <div style="margin-top:14px;font-size:.82rem;color:var(--muted)">
-        Platform detected: <strong id="detected-platform">—</strong> &nbsp;|&nbsp;
-        Slug: <strong id="result-slug">—</strong>
-      </div>
-    </div>
-
-    <!-- Links list -->
-    <div class="card" style="margin-top:24px">
-      <div class="card-title">Your Links</div>
-      <div class="tbl-wrap">
-        <table>
-          <thead><tr><th>Slug</th><th>Platform</th><th>Title</th><th>Created</th><th>Clicks</th><th></th></tr></thead>
-          <tbody id="gen-links-body"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-  </section>
-
-  <!-- ── Dashboard Tab ── -->
-  <section class="tab-pane" id="tab-dashboard">
-    <div class="stats">
-      <div class="stat"><div class="stat-value" id="stat-clicks">—</div><div class="stat-label">Total Clicks</div></div>
-      <div class="stat"><div class="stat-value" id="stat-links">—</div><div class="stat-label">Links Created</div></div>
-      <div class="stat"><div class="stat-value" id="stat-mobile">—</div><div class="stat-label">Mobile %</div></div>
-      <div class="stat"><div class="stat-value" id="stat-app">—</div><div class="stat-label">App Opens %</div></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Recent Clicks</div>
-      <div class="tbl-wrap">
-        <table id="clicks-table">
-          <thead><tr>
-            <th>Slug</th><th>Device</th><th>Country</th>
-            <th>App?</th><th>Referrer</th><th>Time</th>
-          </tr></thead>
-          <tbody id="clicks-body">
-            <tr><td colspan="6" class="empty">Loading…</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Your Links</div>
-      <div class="tbl-wrap">
-        <table id="links-table">
-          <thead><tr><th>Slug</th><th>Platform</th><th>Title</th><th>Created</th><th></th></tr></thead>
-          <tbody id="links-body">
-            <tr><td colspan="5" class="empty">Loading…</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </section>
-
-  <!-- ── Settings Tab ── -->
-  <section class="tab-pane" id="tab-settings">
-    <div class="card">
-      <div class="card-title">Supabase Connection</div>
-      <div class="field">
-        <label>Project URL</label>
-        <input type="url" id="sb-url" placeholder="https://xxxx.supabase.co">
-      </div>
-      <div class="field">
-        <label>Anon Key</label>
-        <input type="text" id="sb-key" placeholder="eyJ…">
-      </div>
-      <button class="btn btn-primary" id="save-settings-btn">Save &amp; Test Connection</button>
-      <p id="conn-status" style="margin-top:12px;font-size:.85rem;color:var(--muted)"></p>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Required Database Tables</div>
-      <pre style="background:var(--bg);padding:14px;border-radius:8px;font-size:.78rem;color:var(--muted);overflow-x:auto;line-height:1.6">create table links (
-  id uuid primary key default gen_random_uuid(),
-  slug text unique not null,
-  url text not null,
-  platform text,
-  title text,
-  created_at timestamptz default now()
-);
-create table clicks (
-  id uuid primary key default gen_random_uuid(),
-  link_id uuid references links(id),
-  slug text,
-  device_type text,
-  country text,
-  referrer text,
-  destination text,
-  opened_app boolean default false,
-  created_at timestamptz default now()
-);</pre>
-    </div>
-  </section>
-
-</div><!-- /container -->
-
 <script>
-const EDGE_FN_URL = 'https://vzkfundtlfpyljfemzsn.supabase.co/functions/v1/redirect'
-const DEFAULT_SB_URL = 'https://vzkfundtlfpyljfemzsn.supabase.co'
-const DEFAULT_SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6a2Z1bmR0bGZweWxqZmVtenNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNDUxMDUsImV4cCI6MjA5MjYyMTEwNX0.I64KdFUmUMSpet_rzXmECZPnh21hBN_bYuL_h6MmXFw'
+var EDGE_FN = 'https://vzkfundtlfpyljfemzsn.supabase.co/functions/v1/redirect';
+var DEFAULT_URL = 'https://vzkfundtlfpyljfemzsn.supabase.co';
+var DEFAULT_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6a2Z1bmR0bGZweWxqZmVtenNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNDUxMDUsImV4cCI6MjA5MjYyMTEwNX0.I64KdFUmUMSpet_rzXmECZPnh21hBN_bYuL_h6MmXFw';
 
-function getSbConfig() {
-  return {
-    url: localStorage.getItem('sb_url') || DEFAULT_SB_URL,
-    key: localStorage.getItem('sb_key') || DEFAULT_SB_KEY,
+var COLORS = { spotify: '#1ed760', apple: '#fc3c44', amazon: '#00a8e1', youtube: '#ff0000' };
+var LABELS = { spotify: 'Spotify', apple: 'Apple Music', amazon: 'Amazon Music', youtube: 'YouTube' };
+
+// ── REDIRECT HANDLER ──────────────────────────────────────────────────────────
+(function() {
+  var slug = new URLSearchParams(window.location.search).get('go');
+  if (!slug) return;
+
+  var dots = '<style>html,body{margin:0;padding:0;background:#000;width:100%;height:100%;display:flex;align-items:center;justify-content:center}.dots{display:flex;gap:6px}.dot{width:6px;height:6px;background:#1ed760;border-radius:50%;animation:p 1.2s ease-in-out infinite}.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}@keyframes p{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}</style><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+  document.body.innerHTML = dots;
+
+  var ua = navigator.userAgent;
+  var isTablet = /ipad|tablet/i.test(ua);
+  var isMobile = /iphone|ipad|ipod|android/i.test(ua);
+  var device = isTablet ? 'tablet' : isMobile ? 'mobile' : 'desktop';
+
+  fetch(EDGE_FN + '?go=' + encodeURIComponent(slug) + '&device=' + device)
+    .then(function(r) { return r.json(); })
+    .then(function(link) {
+      if (link.error) {
+        document.body.innerHTML = '<p style="color:#333;font-family:monospace;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)">' + link.error + '</p>';
+        return;
+      }
+      var web = link.web_url;
+      var app = link.app_uri;
+      if (link.web_only || !app || !isMobile) {
+        window.location.replace(web);
+      } else {
+        var t = setTimeout(function() { window.location.replace(web); }, 1800);
+        document.addEventListener('visibilitychange', function() { if (document.hidden) clearTimeout(t); });
+        window.addEventListener('pagehide', function() { clearTimeout(t); });
+        window.location.href = app;
+      }
+    })
+    .catch(function() {
+      document.body.innerHTML = '<p style="color:#333;font-family:monospace;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)">Error loading link.</p>';
+    });
+})();
+
+// ── SUPABASE CONFIG ───────────────────────────────────────────────────────────
+var sbUrl = localStorage.getItem('sburl') || DEFAULT_URL;
+var sbKey = localStorage.getItem('sbkey') || DEFAULT_KEY;
+
+function saveSupabase() {
+  var u = document.getElementById('sb-url').value.trim();
+  var k = document.getElementById('sb-key').value.trim();
+  if (!u || !k) { alert('Please enter both URL and key.'); return; }
+  sbUrl = u; sbKey = k;
+  localStorage.setItem('sburl', u);
+  localStorage.setItem('sbkey', k);
+  updateConnUI();
+  loadLinksList();
+  alert('Connected!');
+}
+
+function disconnectSupabase() {
+  sbUrl = ''; sbKey = '';
+  localStorage.removeItem('sburl');
+  localStorage.removeItem('sbkey');
+  document.getElementById('sb-url').value = '';
+  document.getElementById('sb-key').value = '';
+  updateConnUI();
+}
+
+function updateConnUI() {
+  var row = document.getElementById('conn-row');
+  if (sbUrl && sbKey) {
+    row.classList.add('show');
+    document.getElementById('conn-text').textContent = sbUrl;
+  } else {
+    row.classList.remove('show');
+  }
+  updateBtns();
+}
+
+if (sbUrl) document.getElementById('sb-url').value = sbUrl;
+if (sbKey) document.getElementById('sb-key').value = sbKey;
+updateConnUI();
+
+// ── NAV ───────────────────────────────────────────────────────────────────────
+function showPage(id, tab) {
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.nav-tab').forEach(function(t) { t.classList.remove('active'); });
+  document.getElementById('page-' + id).classList.add('active');
+  tab.classList.add('active');
+  if (id === 'dashboard') loadDashboard();
+  if (id === 'generator') loadLinksList();
+}
+
+// ── PLATFORM DETECTION ────────────────────────────────────────────────────────
+function detectPlatform(raw) {
+  raw = raw.trim();
+  var m;
+
+  m = raw.match(/spotify\.com\/(prerelease)\/([A-Za-z0-9]+)/);
+  if (m) return { platform: 'spotify', type: 'prerelease', id: m[2], webOnly: true, raw: raw };
+
+  m = raw.match(/spotify\.com\/(track|album|artist|playlist|show|episode)\/([A-Za-z0-9]+)/);
+  if (m) return { platform: 'spotify', type: m[1], id: m[2], webOnly: false, raw: raw };
+
+  m = raw.match(/spotify:(track|album|artist|playlist|show|episode):([A-Za-z0-9]+)/);
+  if (m) return { platform: 'spotify', type: m[1], id: m[2], webOnly: false, raw: raw };
+
+  if (/music\.apple\.com/.test(raw)) return { platform: 'apple', type: 'universal', id: '', webOnly: false, raw: raw };
+  if (/music\.amazon\.[a-z.]+/.test(raw)) return { platform: 'amazon', type: 'universal', id: '', webOnly: false, raw: raw };
+
+  m = raw.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]+)/);
+  if (m) return { platform: 'youtube', type: 'video', id: m[1], webOnly: false, raw: raw };
+
+  if (/(?:music\.)?youtube\.com/.test(raw)) return { platform: 'youtube', type: 'universal', id: '', webOnly: false, raw: raw };
+
+  return null;
+}
+
+function buildWebUrl(p) {
+  if (p.platform === 'spotify') return 'https://open.spotify.com/' + p.type + '/' + p.id;
+  return p.raw.split(/[?&]/)[0];
+}
+
+function buildAppUri(p) {
+  if (p.platform === 'spotify' && !p.webOnly) return 'spotify:' + p.type + ':' + p.id;
+  if (p.platform === 'youtube' && p.type === 'video') return 'vnd.youtube:' + p.id;
+  return null;
+}
+
+// ── GENERATOR UI ──────────────────────────────────────────────────────────────
+var currentParsed = null;
+var lastResultUrl = '';
+
+function update() {
+  var raw = document.getElementById('url-input').value.trim();
+  var input = document.getElementById('url-input');
+  var clear = document.getElementById('clear-btn');
+  var badge = document.getElementById('badge');
+  var preview = document.getElementById('preview');
+
+  clear.style.display = raw ? 'block' : 'none';
+  input.className = '';
+
+  if (!raw) {
+    badge.style.display = 'none';
+    preview.className = 'preview';
+    preview.innerHTML = 'Paste a link above...';
+    currentParsed = null; updateBtns(); return;
+  }
+
+  var p = detectPlatform(raw);
+  if (!p) {
+    badge.style.display = 'block'; badge.className = 'badge err';
+    badge.textContent = 'Not recognized - paste a Spotify, Apple Music, Amazon Music, or YouTube link';
+    preview.className = 'preview'; preview.textContent = 'Unrecognized link.';
+    currentParsed = null; updateBtns(); return;
+  }
+
+  currentParsed = p;
+  input.classList.add(p.platform);
+  badge.style.display = 'block';
+  badge.className = 'badge ' + (p.webOnly ? 'pre' : p.platform);
+  badge.textContent = p.webOnly
+    ? 'Prerelease - redirects to web player'
+    : (LABELS[p.platform] || p.platform) + ' detected' + (p.type && p.type !== 'universal' ? ' - ' + p.type.toUpperCase() : '');
+
+  var web = buildWebUrl(p);
+  var app = buildAppUri(p);
+  preview.className = 'preview has-val';
+  if (p.webOnly) {
+    preview.innerHTML = '<span class="web-only">Web redirect only</span><br><span class="fb">-> ' + web + '</span>';
+  } else if (app) {
+    preview.innerHTML = '<span class="app-uri">' + app + '</span><br><span class="fb">-> fallback: ' + web + '</span>';
+  } else {
+    preview.innerHTML = '<span class="fb">Universal link -> ' + web + '</span>';
+  }
+  updateBtns();
+}
+
+function updateBtns() {
+  var hasLink = !!currentParsed;
+  var hasSb = !!(sbUrl && sbKey);
+  var pub = document.getElementById('pub-btn');
+  var dl = document.getElementById('dl-btn');
+
+  dl.classList.toggle('on', hasLink);
+  if (hasLink) {
+    dl.style.background = COLORS[currentParsed.platform] || '#1ed760';
+  } else {
+    dl.style.background = '';
+  }
+
+  pub.classList.remove('on', 'wait');
+  if (hasLink && hasSb) {
+    pub.classList.add('on');
+    pub.textContent = 'Publish Link';
+    pub.style.cssText = '';
+  } else if (hasLink) {
+    pub.textContent = 'Connect Supabase to publish';
+    pub.style.background = '#111'; pub.style.color = '#252525'; pub.style.cursor = 'not-allowed';
+  } else {
+    pub.textContent = 'Publish Link';
+    pub.style.cssText = '';
   }
 }
 
-function sbFetch(path, opts = {}) {
-  const { url, key } = getSbConfig()
-  const token = localStorage.getItem('sb_access_token') || key
-  const headers = {
-    'apikey': key,
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json',
-    ...(opts.headers || {}),
-  }
-  // Only set Prefer when explicitly provided or defaulting for non-DELETE
-  if (opts.method !== 'DELETE') {
-    headers['Prefer'] = opts.prefer ?? 'return=representation'
-  }
-  const { prefer: _p, headers: _h, ...fetchOpts } = opts
-  return fetch(`${url}/rest/v1/${path}`, { ...fetchOpts, headers })
+function clearInput() {
+  document.getElementById('url-input').value = '';
+  document.getElementById('result').classList.remove('show');
+  update();
 }
 
-// ── Auth ─────────────────────────────────────────────────────────────────────
-function authHeaders() {
-  const token = localStorage.getItem('sb_access_token')
-  const { key } = getSbConfig()
-  return {
-    'apikey': key,
-    'Authorization': `Bearer ${token || key}`,
-    'Content-Type': 'application/json',
-  }
-}
+document.getElementById('url-input').addEventListener('input', update);
 
-async function checkSession() {
-  const token = localStorage.getItem('sb_access_token')
-  if (!token) return null
-  const { url, key } = getSbConfig()
-  const res = await fetch(`${url}/auth/v1/user`, {
-    headers: { 'apikey': key, 'Authorization': `Bearer ${token}` }
-  })
-  if (!res.ok) { localStorage.removeItem('sb_access_token'); return null }
-  return await res.json()
-}
+// ── PUBLISH ───────────────────────────────────────────────────────────────────
+async function publishLink() {
+  if (!currentParsed || !sbUrl || !sbKey) return;
+  var p = currentParsed;
+  var web = buildWebUrl(p);
+  var app = buildAppUri(p);
+  var slug = getSlug();
+  var pub = document.getElementById('pub-btn');
+  var resultEl = document.getElementById('result');
 
-async function signIn(email, password) {
-  const { url, key } = getSbConfig()
-  const res = await fetch(`${url}/auth/v1/token?grant_type=password`, {
-    method: 'POST',
-    headers: { 'apikey': key, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
-  })
-  const data = await res.json()
-  if (!res.ok) throw new Error(data.error_description || data.msg || 'Sign-in failed')
-  localStorage.setItem('sb_access_token', data.access_token)
-  return data
-}
+  pub.classList.remove('on'); pub.classList.add('wait');
+  pub.innerHTML = '<span class="spinner"></span>Publishing...';
+  resultEl.classList.remove('show');
 
-async function signOut() {
-  const { url, key } = getSbConfig()
-  await fetch(`${url}/auth/v1/logout`, { method: 'POST', headers: authHeaders() })
-  localStorage.removeItem('sb_access_token')
-  showLogin()
-}
-
-function showApp(email) {
-  document.getElementById('login-screen').classList.remove('show')
-  document.getElementById('app').style.display = ''
-  if (email) document.getElementById('auth-email').textContent = email
-}
-
-function showLogin() {
-  document.getElementById('login-screen').classList.add('show')
-  document.getElementById('app').style.display = 'none'
-}
-
-document.getElementById('login-btn').addEventListener('click', async () => {
-  const email    = document.getElementById('login-email').value.trim()
-  const password = document.getElementById('login-password').value
-  const errEl    = document.getElementById('login-error')
-  const btn      = document.getElementById('login-btn')
-  if (!email || !password) { errEl.textContent = 'Enter your email and password.'; return }
-  btn.disabled = true; btn.textContent = 'Signing in…'; errEl.textContent = ''
   try {
-    const data = await signIn(email, password)
-    showApp(data.user?.email)
-    loadGeneratorLinks()
-  } catch (e) {
-    errEl.textContent = e.message
-  } finally {
-    btn.disabled = false; btn.textContent = 'Sign In'
-  }
-})
-
-document.getElementById('login-password').addEventListener('keydown', e => {
-  if (e.key === 'Enter') document.getElementById('login-btn').click()
-})
-
-document.getElementById('logout-btn').addEventListener('click', signOut)
-
-// ── Redirect handler ─────────────────────────────────────────────────────────
-;(function handleRedirect() {
-  const params = new URLSearchParams(location.search)
-  const slug = params.get('go')
-  if (!slug) return
-
-  // Hide everything except the redirect screen — fans must never see the login UI
-  document.getElementById('login-screen').style.display = 'none'
-  document.getElementById('redirect-screen').classList.add('show')
-  document.getElementById('app').style.display = 'none'
-
-  // Hand off to edge function — it detects device, logs click, and 302-redirects
-  location.replace(`${EDGE_FN_URL}?slug=${encodeURIComponent(slug)}`)
-})()
-
-// ── Platform detection ────────────────────────────────────────────────────────
-function detectPlatform(url) {
-  if (/open\.spotify\.com/i.test(url)) return 'spotify'
-  if (/music\.apple\.com/i.test(url)) return 'apple_music'
-  if (/music\.amazon\.com|amzn\.to/i.test(url)) return 'amazon_music'
-  if (/youtube\.com|youtu\.be/i.test(url)) return 'youtube'
-  return 'unknown'
-}
-
-function platformLabel(p) {
-  return { spotify: 'Spotify', apple_music: 'Apple Music', amazon_music: 'Amazon Music', youtube: 'YouTube', unknown: 'Unknown' }[p] || p
-}
-
-// ── Slug generator ────────────────────────────────────────────────────────────
-function titleToSlug(title) {
-  return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60)
-}
-
-function randomSlug() {
-  return Math.random().toString(36).slice(2, 8) + '-' + Math.random().toString(36).slice(2, 6)
-}
-
-// ── Publish ───────────────────────────────────────────────────────────────────
-document.getElementById('publish-btn').addEventListener('click', async () => {
-  const urlVal = document.getElementById('music-url').value.trim()
-  const titleVal = document.getElementById('link-title').value.trim()
-  const slugVal = document.getElementById('link-slug').value.trim()
-
-  if (!urlVal) { alert('Please enter a music URL.'); return }
-
-  const platform = detectPlatform(urlVal)
-  const slug = slugVal || (titleVal ? titleToSlug(titleVal) : randomSlug())
-  const btn = document.getElementById('publish-btn')
-  btn.disabled = true; btn.textContent = 'Publishing…'
-
-  try {
-    const res = await sbFetch('links', {
+    var res = await fetch(sbUrl + '/rest/v1/links', {
       method: 'POST',
-      prefer: 'return=representation',
-      body: JSON.stringify({ slug, url: urlVal, platform, title: titleVal || null }),
-    })
-    const data = await res.json()
-    if (!res.ok) throw new Error(data?.message || data?.error || res.statusText)
-
-    const shareUrl = `${location.origin}${location.pathname}?go=${slug}`
-    document.getElementById('result-url').textContent = shareUrl
-    document.getElementById('result-slug').textContent = slug
-    document.getElementById('detected-platform').textContent = platformLabel(platform)
-    document.getElementById('result-box').classList.add('show')
-    document.getElementById('music-url').value = ''
-    document.getElementById('link-title').value = ''
-    document.getElementById('link-slug').value = ''
-    loadGeneratorLinks()
-  } catch (e) {
-    alert('Error: ' + e.message)
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': sbKey,
+        'Authorization': 'Bearer ' + sbKey,
+        'Prefer': 'return=minimal,resolution=ignore-duplicates'
+      },
+      body: JSON.stringify({
+        slug: slug,
+        platform: p.platform,
+        app_uri: app || null,
+        web_url: web,
+        web_only: p.webOnly || false,
+        original_url: p.raw
+      })
+    });
+    if (!res.ok && res.status !== 409) throw new Error(await res.text() || String(res.status));
+    var base = window.location.origin + window.location.pathname;
+    lastResultUrl = base + '?go=' + encodeURIComponent(slug);
+    document.getElementById('result-url').textContent = lastResultUrl;
+    resultEl.classList.add('show');
+    loadLinksList();
+  } catch(e) {
+    alert('Publish failed: ' + e.message);
   } finally {
-    btn.disabled = false; btn.textContent = 'Publish Link'
-  }
-})
-
-document.getElementById('copy-btn').addEventListener('click', () => {
-  navigator.clipboard.writeText(document.getElementById('result-url').textContent)
-  document.getElementById('copy-btn').textContent = 'Copied!'
-  setTimeout(() => { document.getElementById('copy-btn').textContent = 'Copy link' }, 2000)
-})
-
-document.getElementById('new-btn').addEventListener('click', () => {
-  document.getElementById('result-box').classList.remove('show')
-})
-
-// ── Generator links list ──────────────────────────────────────────────────────
-async function loadGeneratorLinks() {
-  const [linksRes, countsRes] = await Promise.all([
-    sbFetch('links?order=created_at.desc', { prefer: '' }),
-    sbFetch('clicks?select=link_id&link_id=not.is.null', { prefer: '' }),
-  ])
-  const tbody = document.getElementById('gen-links-body')
-  if (!linksRes.ok) { tbody.innerHTML = '<tr><td colspan="6" class="empty">Failed to load.</td></tr>'; return }
-  const links  = await linksRes.json()
-  const clicks = countsRes.ok ? await countsRes.json() : []
-
-  // Build a click-count map keyed by link_id
-  const countMap = {}
-  for (const c of clicks) countMap[c.link_id] = (countMap[c.link_id] || 0) + 1
-
-  tbody.innerHTML = links.length ? '' : '<tr><td colspan="6" class="empty">No links yet.</td></tr>'
-  for (const l of links) {
-    const time  = l.created_at ? new Date(l.created_at).toLocaleDateString() : '—'
-    const count = countMap[l.id] || 0
-    const row   = document.createElement('tr')
-    row.id = `gen-row-${l.id}`
-    row.innerHTML = `
-      <td><a href="?go=${l.slug}" target="_blank">${l.slug}</a></td>
-      <td>${platformLabel(l.platform || 'unknown')}</td>
-      <td>${l.title || '<span style="color:var(--muted)">—</span>'}</td>
-      <td style="color:var(--muted)">${time}</td>
-      <td><strong>${count}</strong></td>
-      <td style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn btn-secondary btn-sm" onclick="toggleLinkStats('${l.id}','${l.slug}')">Stats</button>
-        <button class="btn btn-secondary btn-sm" onclick="copyShareLink('${l.slug}',this)">Copy</button>
-        <button class="btn btn-sm" style="background:#3a1a1a;color:#f87171;border:1px solid #5a2a2a"
-          onclick="deleteLink('${l.id}','${l.slug}')">Delete</button>
-      </td>`
-    tbody.appendChild(row)
-
-    // Expandable stats row (hidden by default)
-    const statsRow = document.createElement('tr')
-    statsRow.className = 'link-stats-row'
-    statsRow.id = `stats-row-${l.id}`
-    statsRow.innerHTML = `<td colspan="6"><div class="link-stats-panel" id="stats-panel-${l.id}">
-      <div style="color:var(--muted);font-size:.85rem">Loading…</div>
-    </div></td>`
-    tbody.appendChild(statsRow)
+    pub.classList.remove('wait'); pub.classList.add('on');
+    pub.textContent = 'Publish Link';
   }
 }
 
-async function toggleLinkStats(id, slug) {
-  const panel = document.getElementById(`stats-panel-${id}`)
-  const isOpen = panel.classList.contains('open')
-  // Close all open panels first
-  document.querySelectorAll('.link-stats-panel.open').forEach(p => p.classList.remove('open'))
-  document.querySelectorAll('.btn-secondary.btn-sm[data-stats-open]').forEach(b => { b.textContent = 'Stats'; delete b.dataset.statsOpen })
-  if (isOpen) return // was open — just close it
-
-  panel.classList.add('open')
-  const btn = document.querySelector(`#gen-row-${id} button[onclick*="toggleLinkStats"]`)
-  if (btn) { btn.textContent = 'Hide'; btn.dataset.statsOpen = '1' }
-
-  // Fetch all clicks for this link
-  const res = await sbFetch(`clicks?link_id=eq.${id}&order=created_at.desc`, { prefer: '' })
-  if (!res.ok) { panel.innerHTML = '<div style="color:#f87171;font-size:.85rem">Failed to load stats.</div>'; return }
-  const clicks = await res.json()
-
-  if (!clicks.length) {
-    panel.innerHTML = '<div style="color:var(--muted);font-size:.85rem;padding:8px 0">No clicks yet for this link.</div>'
-    return
-  }
-
-  const total   = clicks.length
-  const mobileN = clicks.filter(c => c.device_type === 'mobile').length
-  const appN    = clicks.filter(c => c.opened_app).length
-  const countries = [...new Set(clicks.map(c => c.country).filter(Boolean))]
-
-  const rows = clicks.slice(0, 10).map(c => {
-    const badge = `<span class="badge badge-${c.device_type || 'desktop'}">${c.device_type || '?'}</span>`
-    const app   = c.opened_app ? '<span class="badge badge-app">app</span>' : '<span class="badge badge-web">web</span>'
-    const time  = c.created_at ? new Date(c.created_at).toLocaleString() : '—'
-    const ref   = c.referrer ? (() => { try { return new URL(c.referrer).hostname } catch { return c.referrer.slice(0,30) } })() : '—'
-    return `<tr><td>${badge}</td><td>${c.country||'—'}</td><td>${app}</td><td title="${c.referrer||''}">${ref}</td><td style="color:var(--muted);white-space:nowrap">${time}</td></tr>`
-  }).join('')
-
-  panel.innerHTML = `
-    <div class="mini-stats">
-      <div class="mini-stat"><div class="mini-stat-val">${total}</div><div class="mini-stat-lbl">Total Clicks</div></div>
-      <div class="mini-stat"><div class="mini-stat-val">${total ? Math.round(mobileN/total*100) : 0}%</div><div class="mini-stat-lbl">Mobile</div></div>
-      <div class="mini-stat"><div class="mini-stat-val">${total ? Math.round(appN/total*100) : 0}%</div><div class="mini-stat-lbl">App Opens</div></div>
-      <div class="mini-stat"><div class="mini-stat-val">${countries.length}</div><div class="mini-stat-lbl">Countries</div></div>
-    </div>
-    <div style="font-size:.78rem;color:var(--muted);margin-bottom:8px">Countries: ${countries.join(', ') || '—'}</div>
-    <div class="tbl-wrap"><table>
-      <thead><tr><th>Device</th><th>Country</th><th>Opened</th><th>Referrer</th><th>Time</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table></div>
-    ${total > 10 ? `<div style="font-size:.78rem;color:var(--muted);margin-top:8px">Showing 10 of ${total} clicks</div>` : ''}
-  `
+function getSlug() {
+  var raw = document.getElementById('slug-input').value.trim();
+  if (raw) return raw.replace(/[^a-zA-Z0-9._-]/g, '-');
+  if (!currentParsed) return 'music-link';
+  return currentParsed.platform + (currentParsed.id ? '-' + currentParsed.id.slice(0, 8) : '-link');
 }
 
-async function deleteLink(id, slug) {
-  if (!confirm(`Delete "${slug}"? Click data will be kept but the link will stop working.`)) return
+function copyResult() {
+  navigator.clipboard.writeText(lastResultUrl).catch(function() {
+    var ta = document.createElement('textarea');
+    ta.value = lastResultUrl; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+  });
+  var btn = document.querySelector('.rbtn.copy');
+  btn.textContent = 'Copied!';
+  setTimeout(function() { btn.textContent = 'Copy URL'; }, 2000);
+}
+
+function openResult() { if (lastResultUrl) window.open(lastResultUrl, '_blank'); }
+
+// ── DOWNLOAD (offline file) ───────────────────────────────────────────────────
+function downloadFile() {
+  if (!currentParsed) return;
+  var p = currentParsed;
+  var web = buildWebUrl(p);
+  var app = buildAppUri(p);
+  var color = COLORS[p.platform] || '#fff';
+  var css = 'html,body{margin:0;padding:0;background:#000;width:100%;height:100%;display:flex;align-items:center;justify-content:center}.dots{display:flex;gap:6px}.dot{width:6px;height:6px;background:' + color + ';border-radius:50%;animation:p 1.2s ease-in-out infinite}.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}@keyframes p{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}';
+  var dots = '<div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+  var sc = 'scr' + 'ipt';
+  var html;
+  if (!app || p.webOnly) {
+    html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><style>' + css + '</style></head><body>' + dots + '<' + sc + '>window.location.href=' + JSON.stringify(web) + ';</' + sc + '></body></html>';
+  } else {
+    html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><style>' + css + '</style></head><body>' + dots + '<' + sc + '>var a=' + JSON.stringify(app) + ',w=' + JSON.stringify(web) + ',m=/iphone|ipad|ipod|android/i.test(navigator.userAgent);if(!m){window.location.href=w}else{var t=setTimeout(function(){window.location.href=w},1800);document.addEventListener("visibilitychange",function(){if(document.hidden)clearTimeout(t)});window.location.href=a}</' + sc + '></body></html>';
+  }
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+  a.download = getSlug() + '.html'; a.click(); URL.revokeObjectURL(a.href);
+}
+
+// ── LINKS LIST ────────────────────────────────────────────────────────────────
+async function loadLinksList() {
+  if (!sbUrl || !sbKey) return;
   try {
-    // Nullify link_id on clicks so the FK doesn't block the delete (preserves click history)
-    const nullify = await sbFetch(`clicks?link_id=eq.${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ link_id: null }),
-    })
-    if (!nullify.ok) throw new Error('Could not unlink click records')
+    var res = await fetch(sbUrl + '/rest/v1/links?select=*&order=created_at.desc', {
+      headers: { 'apikey': sbKey, 'Authorization': 'Bearer ' + sbKey }
+    });
+    var rows = await res.json();
+    var el = document.getElementById('links-list');
+    if (!Array.isArray(rows) || !rows.length) { el.innerHTML = ''; return; }
+    var base = window.location.origin + window.location.pathname;
+    el.innerHTML = rows.map(function(r) {
+      var url = base + '?go=' + encodeURIComponent(r.slug);
+      return '<div class="link-item"><div><div class="link-slug">/' + r.slug + '</div><div class="link-plat ' + r.platform + '">' + (LABELS[r.platform] || r.platform) + '</div></div><div style="display:flex;gap:6px"><button class="lbtn" onclick="copyText(\'' + url.replace(/'/g, '') + '\',this)">Copy</button><button class="lbtn del" onclick="deleteLink(\'' + r.slug.replace(/'/g, '') + '\',this)">Delete</button></div></div>';
+    }).join('');
+  } catch(e) {}
+}
 
-    const res = await sbFetch(`links?id=eq.${id}`, { method: 'DELETE' })
-    if (res.ok) {
-      document.getElementById(`gen-row-${id}`)?.remove()
-      const tbody = document.getElementById('gen-links-body')
-      if (!tbody.children.length) tbody.innerHTML = '<tr><td colspan="5" class="empty">No links yet.</td></tr>'
-    } else {
-      const err = await res.json().catch(() => ({}))
-      alert('Delete failed: ' + (err.message || err.hint || res.status))
-    }
-  } catch (e) {
-    alert('Delete failed: ' + e.message)
+async function deleteLink(slug, btn) {
+  if (!confirm('Delete /' + slug + '?')) return;
+  btn.textContent = '...';
+  try {
+    await fetch(sbUrl + '/rest/v1/links?slug=eq.' + encodeURIComponent(slug), {
+      method: 'DELETE',
+      headers: { 'apikey': sbKey, 'Authorization': 'Bearer ' + sbKey }
+    });
+    loadLinksList();
+  } catch(e) {
+    alert('Delete failed: ' + e.message);
+    btn.textContent = 'Delete';
   }
 }
 
-// ── Dashboard ─────────────────────────────────────────────────────────────────
+function copyText(text, btn) {
+  navigator.clipboard.writeText(text).catch(function() {
+    var ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+  });
+  btn.textContent = 'Copied!';
+  setTimeout(function() { btn.textContent = 'Copy'; }, 1500);
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+function pct(n, t) { return t ? Math.round(n / t * 100) : 0; }
+
+function groupBy(rows, key) {
+  var c = {};
+  rows.forEach(function(r) { var k = r[key] || 'unknown'; c[k] = (c[k] || 0) + 1; });
+  return Object.entries(c).sort(function(a, b) { return b[1] - a[1]; }).map(function(e) { return { key: e[0], count: e[1] }; });
+}
+
+function renderBars(id, rows, total, colorFn) {
+  var el = document.getElementById(id);
+  if (!rows.length) { el.innerHTML = '<div class="empty">No data yet</div>'; return; }
+  el.innerHTML = rows.slice(0, 8).map(function(r) {
+    var p = pct(r.count, total);
+    var color = colorFn ? colorFn(r.key) : 'var(--green)';
+    return '<div class="bar-row"><span class="bar-key" title="' + (r.key || '-') + '">' + (r.key || '-') + '</span><div class="bar-track"><div class="bar-fill" style="width:' + p + '%;background:' + color + '"></div></div><span class="bar-val">' + r.count + '</span></div>';
+  }).join('');
+}
+
+function renderDonut(id, rows, total, colorFn) {
+  var el = document.getElementById(id);
+  if (!rows.length) { el.innerHTML = '<div class="empty" style="padding:12px 0">-</div>'; return; }
+  el.innerHTML = rows.slice(0, 5).map(function(r) {
+    var p = pct(r.count, total);
+    var color = colorFn ? colorFn(r.key) : 'var(--green)';
+    return '<div class="donut-item"><span class="donut-label">' + (r.key || 'unknown') + '</span><div class="donut-bar"><div class="donut-fill" style="width:' + p + '%;background:' + color + '"></div></div><span class="donut-pct">' + p + '%</span></div>';
+  }).join('');
+}
+
 async function loadDashboard() {
-  const [clicksRes, linksRes] = await Promise.all([
-    sbFetch('clicks?order=created_at.desc&limit=50', { prefer: '' }),
-    sbFetch('links?order=created_at.desc', { prefer: '' }),
-  ])
-  if (!clicksRes.ok || !linksRes.ok) {
-    document.getElementById('clicks-body').innerHTML = '<tr><td colspan="6" class="empty">Failed to load — check Settings.</td></tr>'
-    return
+  if (!sbUrl || !sbKey) {
+    document.getElementById('bar-links').innerHTML = '<div class="empty">Connect Supabase in Settings to see analytics</div>';
+    return;
   }
-  const clicks = await clicksRes.json()
-  const links  = await linksRes.json()
-
-  // Stats
-  const total    = clicks.length
-  const mobileN  = clicks.filter(c => c.device_type === 'mobile').length
-  const appN     = clicks.filter(c => c.opened_app).length
-  document.getElementById('stat-clicks').textContent = total
-  document.getElementById('stat-links').textContent  = links.length
-  document.getElementById('stat-mobile').textContent = total ? Math.round(mobileN / total * 100) + '%' : '—'
-  document.getElementById('stat-app').textContent    = total ? Math.round(appN    / total * 100) + '%' : '—'
-
-  // Clicks table
-  const cb = document.getElementById('clicks-body')
-  cb.innerHTML = clicks.length ? '' : '<tr><td colspan="6" class="empty">No clicks yet.</td></tr>'
-  for (const c of clicks) {
-    const deviceBadge = `<span class="badge badge-${c.device_type}">${c.device_type || '?'}</span>`
-    const appBadge    = c.opened_app
-      ? '<span class="badge badge-app">app</span>'
-      : '<span class="badge badge-web">web</span>'
-    const ref  = c.referrer ? new URL(c.referrer).hostname : '—'
-    const time = c.created_at ? new Date(c.created_at).toLocaleString() : '—'
-    cb.insertAdjacentHTML('beforeend', `<tr>
-      <td><a href="?go=${c.slug}">${c.slug}</a></td>
-      <td>${deviceBadge}</td><td>${c.country || '—'}</td>
-      <td>${appBadge}</td><td title="${c.referrer || ''}">${ref}</td>
-      <td style="white-space:nowrap;color:var(--muted)">${time}</td>
-    </tr>`)
-  }
-
-  // Links table
-  const lb = document.getElementById('links-body')
-  lb.innerHTML = links.length ? '' : '<tr><td colspan="5" class="empty">No links yet.</td></tr>'
-  for (const l of links) {
-    const time = l.created_at ? new Date(l.created_at).toLocaleDateString() : '—'
-    lb.insertAdjacentHTML('beforeend', `<tr>
-      <td><a href="?go=${l.slug}" target="_blank">${l.slug}</a></td>
-      <td>${platformLabel(l.platform || 'unknown')}</td>
-      <td>${l.title || '<span style="color:var(--muted)">—</span>'}</td>
-      <td style="color:var(--muted)">${time}</td>
-      <td><button class="btn btn-secondary btn-sm" onclick="copyShareLink('${l.slug}')">Copy</button></td>
-    </tr>`)
-  }
-}
-
-function copyShareLink(slug, btn) {
-  navigator.clipboard.writeText(`${location.origin}${location.pathname}?go=${slug}`)
-  if (btn) { const t = btn.textContent; btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = t, 2000) }
-}
-
-// ── Settings ──────────────────────────────────────────────────────────────────
-function loadSettingsFields() {
-  document.getElementById('sb-url').value = localStorage.getItem('sb_url') || DEFAULT_SB_URL
-  document.getElementById('sb-key').value = localStorage.getItem('sb_key') || DEFAULT_SB_KEY
-}
-
-document.getElementById('save-settings-btn').addEventListener('click', async () => {
-  const url = document.getElementById('sb-url').value.trim()
-  const key = document.getElementById('sb-key').value.trim()
-  if (!url || !key) { alert('Both fields are required.'); return }
-
-  localStorage.setItem('sb_url', url)
-  localStorage.setItem('sb_key', key)
-
-  const status = document.getElementById('conn-status')
-  status.textContent = 'Testing…'; status.style.color = 'var(--muted)'
-
+  var btn = document.getElementById('refresh-btn');
+  btn.textContent = 'Loading...';
   try {
-    const res = await fetch(`${url}/rest/v1/links?limit=1`, {
-      headers: { apikey: key, Authorization: `Bearer ${key}` },
-    })
-    if (res.ok) {
-      status.textContent = '✓ Connected successfully'
-      status.style.color = 'var(--accent)'
+    var res = await fetch(sbUrl + '/rest/v1/clicks?select=*&order=clicked_at.desc&limit=2000', {
+      headers: { 'apikey': sbKey, 'Authorization': 'Bearer ' + sbKey }
+    });
+    var rows = await res.json();
+    if (!Array.isArray(rows)) { rows = []; }
+
+    var total = rows.length;
+    var mobile = rows.filter(function(r) { return r.device === 'mobile' || r.device === 'tablet'; }).length;
+    var appOp = rows.filter(function(r) { return r.link_type === 'app'; }).length;
+    var slugs = new Set(rows.map(function(r) { return r.slug; })).size;
+
+    document.getElementById('s-total').textContent = total;
+    document.getElementById('s-links').textContent = slugs;
+    document.getElementById('s-mobile').textContent = total ? pct(mobile, total) + '%' : '-';
+    document.getElementById('s-app').textContent = total ? pct(appOp, total) + '%' : '-';
+
+    renderBars('bar-links', groupBy(rows, 'slug'), total, null);
+    renderDonut('d-platform', groupBy(rows, 'platform'), total, function(k) { return COLORS[k] || '#555'; });
+    renderDonut('d-device', groupBy(rows, 'device'), total, function(k) {
+      return k === 'mobile' ? '#1ed760' : k === 'tablet' ? '#00a8e1' : '#666';
+    });
+    renderBars('bar-countries', groupBy(rows, 'country'), total, null);
+
+    var refRows = rows.filter(function(r) { return r.referrer; });
+    var refG = groupBy(refRows, 'referrer').map(function(r) {
+      try { r.key = new URL(r.key).hostname; } catch(e) {}
+      return r;
+    });
+    renderBars('bar-referrers', refG, refRows.length, null);
+
+    if (!rows.length) {
+      document.getElementById('recent-clicks').innerHTML = '<div class="empty">No clicks yet</div>';
     } else {
-      const err = await res.json()
-      throw new Error(err?.message || res.statusText)
+      var html = '<table class="clicks-table"><thead><tr><th>Time</th><th>Link</th><th>Platform</th><th>Type</th><th>Device</th><th>Country</th></tr></thead><tbody>';
+      rows.slice(0, 20).forEach(function(r) {
+        var d = new Date(r.clicked_at);
+        var t = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        var c = COLORS[r.platform] || '#555';
+        html += '<tr><td>' + t + '</td><td>' + r.slug + '</td><td><span class="pdot" style="background:' + c + '"></span>' + (r.platform || '-') + '</td><td>' + (r.link_type || '-') + '</td><td>' + (r.device || '-') + '</td><td>' + (r.country || '-') + '</td></tr>';
+      });
+      html += '</tbody></table>';
+      document.getElementById('recent-clicks').innerHTML = html;
     }
-  } catch (e) {
-    status.textContent = '✗ ' + e.message
-    status.style.color = '#f87171'
+  } catch(e) {
+    console.error(e);
+  } finally {
+    btn.textContent = 'Refresh';
   }
-})
+}
 
-// ── Tab switching ─────────────────────────────────────────────────────────────
-document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'))
-    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'))
-    btn.classList.add('active')
-    const pane = document.getElementById('tab-' + btn.dataset.tab)
-    if (pane) pane.classList.add('active')
-    if (btn.dataset.tab === 'dashboard') loadDashboard()
-    if (btn.dataset.tab === 'settings')  loadSettingsFields()
-  })
-})
-
-// ── Init ──────────────────────────────────────────────────────────────────────
-loadSettingsFields();
-(async () => {
-  // Skip auth check for redirect links — fans don't need to log in
-  const isRedirect = new URLSearchParams(location.search).has('go')
-  if (isRedirect) return
-  const user = await checkSession()
-  if (user) { showApp(user.email); loadGeneratorLinks() }
-  else showLogin()
-})()
+loadLinksList();
 </script>
 </body>
 </html>
-
-
